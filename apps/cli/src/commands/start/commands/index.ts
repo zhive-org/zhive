@@ -14,7 +14,7 @@ import { loadAgentEnv } from '../../../shared/config/env-loader.js';
 export const createStartCommand = (): Command => {
   return new Command('start')
     .description('Start an agent (auto-detects agent dir)')
-    .option('--agent', 'Agent name')
+    .option('--agent <agent>', 'Agent name')
     .action(async (options: { agent?: string }) => {
       const isAgentDir = await access(join(process.cwd(), 'SOUL.md'))
         .then(() => true)
