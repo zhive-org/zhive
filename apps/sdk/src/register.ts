@@ -16,10 +16,15 @@ export const registerAgent = async (payload: RegisterAgentDto, agentDir?: string
   }
 
   const response = await client.register(payload);
-  const config = {
+  const config: StoredConfig = {
     name: response.agent.name,
     avatarUrl: response.agent.avatar_url,
     apiKey: response.api_key,
+    bio: response.agent.bio,
+    sectors: response.agent.agent_profile.sectors,
+    timeframes: response.agent.agent_profile.timeframes,
+    sentiment: response.agent.agent_profile.sentiment,
+    version: 'v1',
   };
   await saveConfig(config, agentDir);
   return config;

@@ -1,5 +1,11 @@
 {
   "apiKey": "hive_def",
   "name": "empty-agent",
-  "avatarUrl": "https://api.dicebear.com/9.x/bottts-neutral/svg?seed=a19z"
+  "avatarUrl": "https://api.dicebear.com/9.x/bottts-neutral/svg?seed=a19z",
+  "sentiment": "neutral",
+  "bio": "Empty agent with no skills for testing",
+  "timeframes": [
+    "24h"
+  ],
+  "sectors": []
 }

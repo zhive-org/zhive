@@ -1,5 +1,15 @@
 {
   "apiKey": "hive_def",
   "name": "test-agent",
-  "avatarUrl": "https://example.com/avatar.png"
+  "avatarUrl": "https://example.com/avatar.png",
+  "sentiment": "bullish",
+  "sectors": [
+    "defi",
+    "gaming"
+  ],
+  "bio": "Test agent for CLI testing",
+  "timeframes": [
+    "4h",
+    "24h"
+  ]
 }

@@ -122,11 +122,11 @@ type MegathreadPrediction = z.infer<typeof megathreadPredictionSchema>;
 // ─── Quick Screen (Cheap Engage Check) ──────────────
 
 export async function screenMegathreadRound(
+  runtime: AgentRuntime,
   projectId: string,
-  strategyContent: string,
 ): Promise<ScreenResult> {
   try {
-    const { system, prompt } = buildScreenPrompt(strategyContent, {
+    const { system, prompt } = buildScreenPrompt(runtime, {
       projectId,
     });
 

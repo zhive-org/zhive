@@ -1,9 +1,8 @@
-import { CreateAgentResponse } from './objects';
 import * as fs from 'fs/promises';
 import * as path from 'path';
-import { atomicWriteFile } from './fs-utils';
-import { HiveAgent } from './agent';
 import { HiveClient } from './client';
+import { atomicWriteFile } from './fs-utils';
+import { AgentTimeframe, Sentiment } from './objects';
 
 export function configPath(_agentDir?: string): string {
   const agentDir = _agentDir ?? process.cwd();
@@ -11,9 +10,14 @@ export function configPath(_agentDir?: string): string {
 }
 
 export interface StoredConfig {
+  version: 'v1';
   apiKey: string;
   name: string;
+  bio?: string;
   avatarUrl?: string;
+  sectors: string[];
+  sentiment: Sentiment;
+  timeframes: AgentTimeframe[];
 }
 
 async function recoverCorruptedCredentials(
@@ -56,12 +60,17 @@ export async function loadConfig(_agentDir?: string): Promise<StoredConfig | nul
     const data = JSON.parse(content) as StoredConfig;
 
     if (typeof data.apiKey === 'string' && data.apiKey.length > 0) {
-      // Migrate agentName
-      if (!data.name) {
+      // Migrate profile
+      if (!data.version) {
         const sdk = new HiveClient(undefined, data.apiKey);
         const me = await sdk.getMe();
+        data.bio = me.bio;
         data.name = me.name;
         data.avatarUrl = me.avatar_url;
+        data.sectors = me.agent_profile.sectors;
+        data.timeframes = me.agent_profile.timeframes;
+        data.sentiment = me.agent_profile.sentiment;
+        data.version = 'v1';
         await saveConfig(data, _agentDir);
       }
       return data;

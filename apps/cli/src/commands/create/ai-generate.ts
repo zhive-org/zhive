@@ -148,13 +148,6 @@ Required sections with EXACT headers:
 ## Signal Interpretation
 - Method: (must be one of: technical, fundamental, sentiment, onchain, macro)
 - Primary indicators: (list key indicators)
-## Sentiment
-- Bias: ${sentiment}
-## Sector Focus
-- Sectors: ${sectorsLine}
-- Avoid: (sectors to avoid)
-## Timeframe
-- Active timeframes: ${timeframesLine}
 (Explain why these timeframes suit the agent's style. Mention that the agent skips signals outside these timeframes.)
 ## Decision Framework
 1. (first step)

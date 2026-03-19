@@ -19,20 +19,6 @@ export interface AgentConfig {
   agentProfile: AgentProfile;
 }
 
-const VALID_SENTIMENTS: Sentiment[] = [
-  'very-bullish',
-  'bullish',
-  'neutral',
-  'bearish',
-  'very-bearish',
-];
-const VALID_TIMEFRAMES: AgentTimeframe[] = ['4h', '24h', '7d'];
-
-/** Map removed timeframes to their nearest valid replacement. */
-const LEGACY_TIMEFRAME_MAP: Record<string, AgentTimeframe> = {
-  '1h': '4h',
-};
-
 export interface AgentStats {
   honey: number;
   wax: number;
@@ -40,15 +26,6 @@ export interface AgentStats {
   confidence: number;
   simulated_pnl: number;
   total_comments: number;
-}
-
-function extractField(content: string, pattern: RegExp): string | null {
-  const match = content.match(pattern);
-  if (match === null) {
-    return null;
-  }
-  const value = match[1].trim();
-  return value;
 }
 
 async function detectProvider(agentDir: string): Promise<string> {
@@ -101,24 +78,18 @@ export async function loadAgentConfig(_agentDir?: string): Promise<AgentConfig> 
     throw new Error('Missing api key');
   }
 
-  const bioRaw = extractField(soulContent, /^## Bio\s*\n+(.+)$/m);
-  const bio = bioRaw ?? null;
-
-  const sentimentRaw = extractField(strategyContent, /^-\s+Bias:\s+(.+)$/m);
-  const sectorsRaw = extractField(strategyContent, /^-\s+Sectors:\s+(.+)$/m);
-  const timeframesRaw = extractField(strategyContent, /^-\s+Active timeframes:\s+(.+)$/m);
   const stat = await fs.stat(soulPath);
   const provider = await detectProvider(agentDir);
 
   const agentProfile: AgentProfile = {
-    sentiment: parseSentiment(sentimentRaw),
-    sectors: parseSectors(sectorsRaw),
-    timeframes: parseTimeframes(timeframesRaw),
+    sentiment: config.sentiment,
+    sectors: config.sectors,
+    timeframes: config.timeframes,
   };
 
   return {
     name,
-    bio,
+    bio: config.bio ?? null,
     dir: agentDir,
     apiKey: config.apiKey,
     provider,
@@ -214,45 +185,6 @@ export async function fetchBulkStats(names: string[]): Promise<Map<string, Agent
 async function loadMarkdownFile(filePath: string): Promise<string> {
   const content = await fs.readFile(filePath, 'utf-8');
   return content;
-}
-
-function parseSentiment(raw: string | null): Sentiment {
-  if (raw !== null && VALID_SENTIMENTS.includes(raw as Sentiment)) {
-    return raw as Sentiment;
-  }
-  return 'neutral';
-}
-
-function parseSectors(raw: string | null): string[] {
-  if (raw === null || raw.trim() === '') {
-    return [];
-  }
-  const sectors = raw
-    .split(',')
-    .map((s) => s.trim())
-    .filter((s) => s.length > 0);
-  return sectors;
-}
-
-function parseTimeframes(raw: string | null): AgentTimeframe[] {
-  if (raw === null || raw.trim() === '') {
-    return ['4h', '24h', '7d'];
-  }
-  const migrated = raw
-    .split(',')
-    .map((t) => t.trim())
-    .map((t) => {
-      if (VALID_TIMEFRAMES.includes(t as AgentTimeframe)) {
-        return t as AgentTimeframe;
-      }
-      return LEGACY_TIMEFRAME_MAP[t] ?? null;
-    })
-    .filter((t): t is AgentTimeframe => t !== null);
-  const deduplicated = [...new Set(migrated)];
-  if (deduplicated.length === 0) {
-    return ['4h', '24h', '7d'];
-  }
-  return deduplicated;
 }
 
 export async function findAgentByName(name: string): Promise<AgentConfig | null> {

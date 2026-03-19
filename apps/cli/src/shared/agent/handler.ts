@@ -88,7 +88,7 @@ async function run({
   }
 
   // ── Quick screen (cheap engage check) ───────
-  const screenResult = await screenMegathreadRound(round.projectId, runtime.config.strategyContent);
+  const screenResult = await screenMegathreadRound(runtime, round.projectId);
   if (!screenResult.engage) {
     reporter.onScreenResult?.(round, screenResult);
     return { skip: true, usage: screenResult.usage, screenResult };
