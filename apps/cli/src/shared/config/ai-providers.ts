@@ -8,12 +8,7 @@ import { getAgentProviderKeys } from './env-loader.js';
 
 let _modelPromise: Promise<LanguageModel> | null = null;
 
-export type AIProviderId =
-  | 'openai'
-  | 'anthropic'
-  | 'google'
-  | 'xai'
-  | 'openrouter';
+export type AIProviderId = 'openai' | 'anthropic' | 'google' | 'xai' | 'openrouter';
 
 export interface AIProviderModels {
   /** Cheapest model — just checks if the key works. */
@@ -106,9 +101,9 @@ export const AI_PROVIDERS: AIProvider[] = [
     package: '@openrouter/ai-sdk-provider',
     envVar: 'OPENROUTER_API_KEY',
     models: {
-      validation: 'openai/gpt-4o-mini',
-      generation: 'openai/gpt-5.1-mini',
-      runtime: 'openai/gpt-5.1-mini',
+      validation: 'openai/gpt-5-nano',
+      generation: 'openai/gpt-5-mini',
+      runtime: 'openai/gpt-5-mini',
     },
     load: async (modelId) => {
       const { createOpenRouter } = await import('@openrouter/ai-sdk-provider');
@@ -145,9 +140,7 @@ export function buildLanguageModel(
     case 'xai':
       return createXai({ apiKey })(modelId);
     case 'openrouter':
-      return createOpenRouter({ apiKey }).chat(
-        modelId,
-      ) as unknown as LanguageModel;
+      return createOpenRouter({ apiKey }).chat(modelId) as unknown as LanguageModel;
   }
 }
 
@@ -170,9 +163,7 @@ export function resolveModelInfo(): ModelInfo {
   for (const provider of sortedProviders) {
     const keyValue = process.env[provider.envVar];
     if (keyValue && keyValue.trim().length > 0) {
-      const centralProvider = AI_PROVIDERS.find(
-        (p) => p.envVar === provider.envVar,
-      );
+      const centralProvider = AI_PROVIDERS.find((p) => p.envVar === provider.envVar);
       const runtimeModel = centralProvider?.models.runtime ?? 'unknown';
       const modelId = overrideModel ?? runtimeModel;
       const source = agentKeys.has(provider.envVar) ? '.env' : 'shell';
@@ -183,9 +174,7 @@ export function resolveModelInfo(): ModelInfo {
   return { provider: 'unknown', modelId: 'unknown', source: 'unknown' };
 }
 
-async function _loadModelForTier(
-  tier: keyof AIProviderModels,
-): Promise<LanguageModel> {
+async function _loadModelForTier(tier: keyof AIProviderModels): Promise<LanguageModel> {
   const agentKeys = getAgentProviderKeys();
   const sortedProviders = [
     ...AI_PROVIDERS.filter((p) => agentKeys.has(p.envVar)),
@@ -196,10 +185,7 @@ async function _loadModelForTier(
     const keyValue = process.env[provider.envVar];
     if (keyValue && keyValue.trim().length > 0) {
       const overrideModel = process.env.HIVE_MODEL;
-      const modelId =
-        tier === 'runtime' && overrideModel
-          ? overrideModel
-          : provider.models[tier];
+      const modelId = tier === 'runtime' && overrideModel ? overrideModel : provider.models[tier];
       const model = await provider.load(modelId);
       return model;
     }
