@@ -20,12 +20,20 @@ const COL = {
   wax: 8,
   winRate: 10,
   confidence: 8,
+  simPnl: 10,
   provider: 0,
   created: 14,
 } as const;
 
 function cell(text: string, width: number): string {
   return ` ${text}`.padEnd(width);
+}
+
+function formatPnl(value: number): string {
+  const abs = Math.abs(Math.round(value));
+  if (value > 0) return `+$${abs}`;
+  if (value < 0) return `-$${abs}`;
+  return '$0';
 }
 
 function formatDate(date: Date): string {
@@ -98,12 +106,13 @@ export function ListApp(): React.ReactElement {
   const waxW = COL.wax;
   const winRateW = COL.winRate;
   const confidenceW = COL.confidence;
+  const simPnlW = COL.simPnl;
 
   const createdW = COL.created;
 
   const sep = border.horizontal;
   const totalWidth =
-    nameW + 1 + honeyW + 1 + waxW + 1 + winRateW + 1 + confidenceW + 1 + providerW + 1 + createdW;
+    nameW + 1 + honeyW + 1 + waxW + 1 + winRateW + 1 + confidenceW + 1 + simPnlW + 1 + providerW + 1 + createdW;
 
   const topBorder = `${border.topLeft}${sep.repeat(totalWidth)}${border.topRight}`;
   const midBorder = `${border.teeLeft}${sep.repeat(totalWidth)}${border.teeRight}`;
@@ -147,6 +156,10 @@ export function ListApp(): React.ReactElement {
         </Text>
         <Text color={colors.honey}>{v}</Text>
         <Text color={colors.white} bold>
+          {cell('Sim PnL', simPnlW)}
+        </Text>
+        <Text color={colors.honey}>{v}</Text>
+        <Text color={colors.white} bold>
           {cell('Provider', providerW)}
         </Text>
         <Text color={colors.honey}>{v}</Text>
@@ -165,6 +178,9 @@ export function ListApp(): React.ReactElement {
         const waxText = s !== null ? String(Math.floor(s.wax)) : '-';
         const winRateText = s !== null ? `${(s.win_rate * 100).toFixed(2)}%` : '-';
         const confidenceText = s !== null ? s.confidence.toFixed(2) : '-';
+        const pnlValue = s !== null ? s.simulated_pnl : 0;
+        const pnlText = s !== null ? formatPnl(pnlValue) : '-';
+        const pnlColor = pnlValue > 0 ? colors.green : pnlValue < 0 ? colors.red : colors.grayDim;
 
         return (
           <Box key={row.info.name}>
@@ -178,6 +194,8 @@ export function ListApp(): React.ReactElement {
             <Text color={colors.green}>{cell(winRateText, winRateW)}</Text>
             <Text color={colors.honey}>{v}</Text>
             <Text color={colors.cyan}>{cell(confidenceText, confidenceW)}</Text>
+            <Text color={colors.honey}>{v}</Text>
+            <Text color={pnlColor}>{cell(pnlText, simPnlW)}</Text>
             <Text color={colors.honey}>{v}</Text>
             <Text color={colors.gray}>{cell(row.info.provider, providerW)}</Text>
             <Text color={colors.honey}>{v}</Text>
