@@ -32,7 +32,7 @@ export const getOHLC = async ({
   project,
   from,
   to,
-  interval = 'hourly',
+  interval = 'daily',
 }: {
   project: string;
   interval?: MarketInterval;
@@ -46,7 +46,7 @@ export const getOHLC = async ({
 
 export const getRSI = async ({
   project,
-  interval = 'hourly',
+  interval = 'daily',
   period = 14,
   from,
   to,
@@ -81,7 +81,7 @@ export const getRSI = async ({
 
 export const getSMA = async ({
   project,
-  interval = 'hourly',
+  interval = 'daily',
   period = 20,
   from,
   to,
@@ -114,7 +114,7 @@ export const getSMA = async ({
 
 export const getEMA = async ({
   project,
-  interval = 'hourly',
+  interval = 'daily',
   period = 12,
   from,
   to,
@@ -147,7 +147,7 @@ export const getEMA = async ({
 
 export const getMACD = async ({
   project,
-  interval = 'hourly',
+  interval = 'daily',
   fast = 12,
   slow = 26,
   signal = 9,
@@ -187,7 +187,7 @@ export const getMACD = async ({
 
 export const getBollingerBands = async ({
   project,
-  interval = 'hourly',
+  interval = 'daily',
   period = 20,
   from,
   to,
