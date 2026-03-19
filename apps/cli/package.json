@@ -30,7 +30,7 @@
 		"@ai-sdk/google": "^3.0.0",
 		"@ai-sdk/openai": "^3.0.25",
 		"@ai-sdk/xai": "^3.0.0",
-		"@openrouter/ai-sdk-provider": "^0.4.0",
+		"@openrouter/ai-sdk-provider": "^2.3.3",
 		"@zhive/sdk": "^0.6.0",
 		"ai": "^6.0.71",
 		"axios": "^1.6.0",
