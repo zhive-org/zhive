@@ -61,13 +61,15 @@ export async function loadConfig(_agentDir?: string): Promise<StoredConfig | nul
 
     if (typeof data.apiKey === 'string' && data.apiKey.length > 0) {
       // Migrate profile
-      if (!data.version) {
+      if (data.version !== 'v1') {
         const sdk = new HiveClient(undefined, data.apiKey);
         const me = await sdk.getMe();
         data.bio = me.bio;
         data.name = me.name;
         data.avatarUrl = me.avatar_url;
-        data.sectors = me.agent_profile.sectors;
+        data.sectors = me.agent_profile.sectors.filter((sector) =>
+          ['crypto', 'stock', 'commodify'].includes(sector),
+        );
         data.timeframes = me.agent_profile.timeframes;
         data.sentiment = me.agent_profile.sentiment;
         data.version = 'v1';

@@ -1,10 +1,10 @@
 import type {
   PersonalityOption,
-  VoiceOption,
-  TradingStyleOption,
-  ProjectCategoryOption,
+  SectorOption,
   SentimentOption,
   TimeframeOption,
+  TradingStyleOption,
+  VoiceOption,
 } from './types.js';
 
 export const PERSONALITY_OPTIONS: PersonalityOption[] = [
@@ -220,109 +220,25 @@ export const TIMEFRAME_OPTIONS: TimeframeOption[] = [
   },
 ];
 
-export const DEFAULT_SECTOR_VALUES = new Set([
-  'l1',
-  'l2',
-  'defi',
-  'ai',
-  'lending',
-  'prediction-markets',
-]);
+export const DEFAULT_SECTOR_VALUES = new Set(['stock', 'crypto', 'commodity']);
 
-export const PROJECT_CATEGORY_OPTIONS: ProjectCategoryOption[] = [
+export const SECTOR_OPTIONS: SectorOption[] = [
   {
-    label: '🔷 Layer 1',
-    value: 'l1',
-    description: 'Base layer chains — ETH, SOL, BTC, AVAX, etc.',
+    label: '📈 Stock',
+    value: 'stock',
+    description:
+      'Equities and traditional stock markets. Earnings, fundamentals, and price action.',
   },
   {
-    label: '🔶 Layer 2',
-    value: 'l2',
-    description: 'Rollups and scaling solutions — ARB, OP, BASE, STRK, etc.',
+    label: '🪙 Crypto',
+    value: 'crypto',
+    description:
+      'Digital assets and blockchain tokens. On-chain data, narratives, and market cycles.',
   },
   {
-    label: '🏦 DeFi',
-    value: 'defi',
-    description: 'Lending, DEXs, yield, stablecoins — AAVE, UNI, MKR, etc.',
-  },
-  {
-    label: '🤖 AI',
-    value: 'ai',
-    description: 'AI and compute tokens — FET, RENDER, TAO, AKT, etc.',
-  },
-  {
-    label: '🏛️ Lending',
-    value: 'lending',
-    description: 'Lending and borrowing protocols — AAVE, COMP, MORPHO, etc.',
-  },
-  {
-    label: '🎯 Prediction Markets',
-    value: 'prediction-markets',
-    description: 'Prediction and betting markets — POLY, GNO, etc.',
-  },
-  {
-    label: '🐸 Memecoins',
-    value: 'meme',
-    description: 'Community-driven tokens — DOGE, SHIB, PEPE, WIF, etc.',
-  },
-  {
-    label: '🏠 RWA',
-    value: 'rwa',
-    description: 'Real world assets — ONDO, MKR (RWA vaults), tokenized treasuries, etc.',
-  },
-  {
-    label: '🎮 Gaming',
-    value: 'gaming',
-    description: 'Gaming and metaverse tokens — IMX, GALA, AXS, etc.',
-  },
-  {
-    label: '🔐 Infrastructure',
-    value: 'infra',
-    description: 'Oracles, bridges, storage — LINK, FIL, GRT, etc.',
-  },
-  {
-    label: '🕵️ Privacy',
-    value: 'privacy',
-    description: 'Privacy-focused chains and protocols — XMR, ZEC, SCRT, etc.',
-  },
-  {
-    label: '🔄 DEX',
-    value: 'dex',
-    description: 'Decentralized exchanges — UNI, SUSHI, CRV, JUP, etc.',
-  },
-  {
-    label: '🌉 Cross-chain',
-    value: 'cross-chain',
-    description: 'Bridges and interoperability — ATOM, DOT, AXL, W, etc.',
-  },
-  {
-    label: '💾 Storage',
-    value: 'storage',
-    description: 'Decentralized storage — FIL, AR, STORJ, etc.',
-  },
-  {
-    label: '💧 Liquid Staking',
-    value: 'liquid-staking',
-    description: 'Liquid staking derivatives — LDO, RPL, SWISE, etc.',
-  },
-  {
-    label: '♻️ Restaking',
-    value: 'restaking',
-    description: 'Restaking protocols — EIGEN, ALT, etc.',
-  },
-  {
-    label: '💬 Social',
-    value: 'social',
-    description: 'Social and identity protocols — LENS, CYBER, ID, etc.',
-  },
-  {
-    label: '🖼️ NFT',
-    value: 'nft',
-    description: 'NFT infrastructure and marketplaces — BLUR, X2Y2, RARE, etc.',
-  },
-  {
-    label: '📡 DePIN',
-    value: 'depin',
-    description: 'Decentralized physical infrastructure — HNT, RNDR, DIMO, etc.',
+    label: '🛢️ Commodity',
+    value: 'commodity',
+    description:
+      'Physical goods like oil, gold, and agriculture. Supply-demand dynamics and macro drivers.',
   },
 ];

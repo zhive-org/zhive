@@ -42,7 +42,7 @@ export interface TradingStyleOption {
   description: string;
 }
 
-export interface ProjectCategoryOption {
+export interface SectorOption {
   label: string;
   value: string;
   description: string;

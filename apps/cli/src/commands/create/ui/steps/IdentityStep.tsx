@@ -11,7 +11,7 @@ import {
   PERSONALITY_OPTIONS,
   VOICE_OPTIONS,
   TRADING_STYLE_OPTIONS,
-  PROJECT_CATEGORY_OPTIONS,
+  SECTOR_OPTIONS,
   SENTIMENT_OPTIONS,
   TIMEFRAME_OPTIONS,
   DEFAULT_SECTOR_VALUES,
@@ -67,12 +67,10 @@ function buildSelectItems<T extends { label: string; value: string; description:
 const personalityItems = buildSelectItems(PERSONALITY_OPTIONS, true);
 const voiceItems = buildSelectItems(VOICE_OPTIONS, true);
 const tradingStyleItems = buildSelectItems(TRADING_STYLE_OPTIONS, true);
-const categoryItems = buildSelectItems(PROJECT_CATEGORY_OPTIONS);
+const sectorItems = buildSelectItems(SECTOR_OPTIONS);
 const sentimentItems = buildSelectItems(SENTIMENT_OPTIONS);
 const timeframeItems = buildSelectItems(TIMEFRAME_OPTIONS);
-const timeframeDefaultSelected = new Set(
-  TIMEFRAME_OPTIONS.map((opt) => opt.value),
-);
+const timeframeDefaultSelected = new Set(TIMEFRAME_OPTIONS.map((opt) => opt.value));
 
 export function IdentityStep({ agentName, onComplete }: IdentityStepProps): React.ReactElement {
   const [subStep, setSubStep] = useState<SubStep>('personality');
@@ -147,7 +145,7 @@ export function IdentityStep({ agentName, onComplete }: IdentityStepProps): Reac
     const values = selected.map((s) => s.value);
     const labels = selected.map((s) => s.label);
     setSectors(values);
-    const displayLabel = values.length === categoryItems.length ? 'All' : labels.join(', ');
+    const displayLabel = values.length === sectorItems.length ? 'All' : labels.join(', ');
     setSectorsLabel(displayLabel);
     setSubStep('sentiment');
   }, []);
@@ -246,7 +244,7 @@ export function IdentityStep({ agentName, onComplete }: IdentityStepProps): Reac
       {subStep === 'sectors' && (
         <MultiSelectPrompt
           label="Which categories should your agent trade?"
-          items={categoryItems}
+          items={sectorItems}
           defaultSelected={DEFAULT_SECTOR_VALUES}
           hint="Recommended categories selected — press spacebar to toggle"
           onSubmit={handleSectors}

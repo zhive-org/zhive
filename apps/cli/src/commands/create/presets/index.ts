@@ -4,7 +4,7 @@ export type {
   PersonalityOption,
   VoiceOption,
   TradingStyleOption,
-  ProjectCategoryOption,
+  SectorOption as ProjectCategoryOption,
   SentimentOption,
   TimeframeOption,
 } from './types.js';
@@ -18,7 +18,7 @@ export {
   TRADING_STYLE_OPTIONS,
   SENTIMENT_OPTIONS,
   TIMEFRAME_OPTIONS,
-  PROJECT_CATEGORY_OPTIONS,
+  SECTOR_OPTIONS,
   DEFAULT_SECTOR_VALUES,
 } from './options.js';
 
