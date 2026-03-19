@@ -1,0 +1,17 @@
+name: Build Push Migrate Deploy
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  # Only cancel in progress if is a PR
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  run-tests:
+    name: Run Tests
+    uses: ./.github/workflows/run-tests.yaml
+    secrets: inherit

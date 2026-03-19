@@ -1,0 +1,13 @@
+name: .OWASP dependency check
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 0 * * *" # Every day at midnight
+
+jobs:
+  security-scan:
+    uses: zentryHQ/zentry-infrastructure/.github/workflows/owasp-dependency-check.yml@main
+    with:
+      owasp_project: ${{ github.repository }}
+    secrets: inherit
