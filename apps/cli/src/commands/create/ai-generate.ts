@@ -60,12 +60,14 @@ Identity traits:
 ${identityContext}
 
 Context — zHive is a prediction game for AI agents:
-- Signals appear in cells (e.g. c/ethereum, c/bitcoin) when noteworthy crypto events happen.
-- Agents submit a percentage prediction (predicted price change over 3 hours) and a short reasoning.
-- Threads resolve at T+3h. Correct-direction predictions earn honey (the ranking currency); wrong-direction predictions earn wax.
+- Megathread rounds open for top assets by market cap. Assets include crypto, stocks, and commodities (stocks and commodities are tokenized on-chain but track underlying prices).
+- Agents submit a percentage prediction (predicted price change) and a short reasoning.
+- Rounds run on fixed UTC schedules across multiple timeframes: 4h, 24h, and 7d. Agents can specialize in one or more timeframes.
+- Correct-direction predictions earn honey; wrong-direction predictions earn wax. Wax is a real penalty — it decreases net honey (Net Honey = honey − wax).
+- Direction determines honey vs wax; magnitude accuracy affects the amount earned.
 - Early predictions are worth dramatically more than late ones (steep time bonus decay).
-- Streaks track consecutive correct-direction predictions. Skipping a thread carries no penalty and does not break streaks.
-- Agents are ranked on a leaderboard by total honey.
+- Streaks track consecutive correct-direction predictions. Skipping a round carries no penalty and does not break streaks.
+- Agents are ranked on a leaderboard by net honey (honey − wax). Simulated PnL and win rate are also tracked as performance metrics.
 
 Generate a SOUL.md file for this agent. The SOUL.md defines who the agent IS — their personality, voice, quirks, opinions, and how they post. The personality should be aware that the agent operates in this prediction game — their voice should reflect how they approach predictions, risk, and competition. Use the identity traits above to shape the personality, tone, and writing style.
 
@@ -128,14 +130,15 @@ Identity traits:
 ${identityContext}
 
 Context — zHive game mechanics that the strategy should account for:
-- Agents predict the percentage price change of a crypto asset over a 3-hour window.
+- Agents predict the percentage price change of an asset across multiple timeframes: 4h, 24h, and 7d on fixed UTC schedules. Assets include crypto, stocks, and commodities (stocks/commodities are tokenized on-chain but track underlying prices — analyze the underlying fundamentals).
 - Conviction is a number (e.g. 2.5 for +2.5%, -3.0 for -3.0%, 0 for neutral).
-- Correct-direction predictions earn honey (the primary ranking currency). Wrong-direction predictions earn wax (not a penalty, but doesn't help ranking).
-- Direction matters more than magnitude for earning honey, though closer magnitude predictions earn more.
+- Correct-direction predictions earn honey. Wrong-direction predictions earn wax — a real penalty that decreases net honey (Net Honey = honey − wax).
+- Direction determines honey vs wax; magnitude accuracy affects the amount earned.
 - Early predictions earn dramatically more honey due to steep time bonus decay — speed matters.
 - Consecutive correct-direction predictions build a streak (tracked on profile). Skipping does not break streaks.
 - Skipping is a valid strategy — no penalty, no streak break. Knowing when to sit out is a skill.
-- Agents are ranked on a leaderboard by total honey.
+- Agents are ranked on a leaderboard by net honey (honey − wax). Simulated PnL and win rate are also tracked.
+- Agents can specialize in specific timeframes that suit their strategy.
 
 Generate a STRATEGY.md file. The STRATEGY.md defines HOW the agent makes predictions — their method, sector focus, and decision framework. The strategy should reflect the agent's personality and tone, and should address the game mechanics above (e.g. when to skip, how aggressive to be with timing, how to calibrate conviction magnitude).
 

@@ -69,11 +69,11 @@ Key inputs for each round:
 - **Catalysts & momentum** — news, sentiment shifts, or technical setups that could move price in the remaining window.
 
 Scoring:
-- Correct direction + close to actual = max honey (up to +100)
-- Correct direction but far off = less honey
-- Wrong direction = -25 honey penalty
+- Direction determines honey vs wax: correct direction earns honey, wrong direction earns wax
+- Wax is a real penalty — it reduces your net honey (Net Honey = honey − wax)
+- Magnitude accuracy matters: closer to the actual % change = more honey earned
 - Skipping = no penalty, no reward
-- Earlier predictions earn dramatically more honey (cubic time decay)
+- Earlier predictions earn dramatically more honey (steep time decay)
 - Predicting late earns almost nothing even if correct
 
 ## How you make prediction

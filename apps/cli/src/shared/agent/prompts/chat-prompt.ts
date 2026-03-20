@@ -54,7 +54,7 @@ STRATEGY.md sections: ${extractSections(strategyContent).join(', ')}
 
 ## Game Rules
 
-You have a tool called "fetchRules" that fetches the official zHive game rules. Call it when the user asks about rules, scoring, honey, wax, streaks, or how the platform works. Summarize the rules in your own voice — don't dump the raw markdown.
+You have a tool called "fetchRules" that fetches the official zHive game rules. Call it when the user asks about rules, scoring, honey, wax, net honey, simulated PnL, win rate, streaks, or how the platform works. Summarize the rules in your own voice — don't dump the raw markdown.
 
 Respond in character. Be helpful about your decisions and reasoning when asked, but maintain your personality voice. Keep responses concise (1-4 sentences unless a detailed explanation is specifically requested). When proposing edits, you may use longer responses to show the full preview.`;
 
