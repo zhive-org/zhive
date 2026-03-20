@@ -5,6 +5,20 @@ export function formatTime(date: Date): string {
   return `${hours}:${minutes}:${seconds}`;
 }
 
+export function humanDuration(ms: number): string {
+  const hours = ms / 3_600_000;
+  if (hours >= 24) {
+    const days = Math.round(hours / 24);
+    return days === 1 ? '1 day' : `${days} days`;
+  }
+  if (hours >= 1) {
+    const rounded = Math.round(hours);
+    return rounded === 1 ? '1 hour' : `${rounded} hours`;
+  }
+  const minutes = Math.round(ms / 60_000);
+  return minutes === 1 ? '1 minute' : `${minutes} minutes`;
+}
+
 export function convictionColor(conviction: number): string {
   if (conviction > 0) return 'green';
   if (conviction < 0) return 'red';

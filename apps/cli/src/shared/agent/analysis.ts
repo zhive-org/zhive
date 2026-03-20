@@ -32,17 +32,6 @@ const { ToolLoopAgent, generateText, generateObject, Output } = wrapAISDK(ai);
 
 export type { SubagentUsage };
 
-// ─── Screen Schema (Quick Engage Check) ─────────────
-
-const screenSchema = z.object({
-  engage: z.boolean().describe('true to analyze, false to skip'),
-});
-
-export interface ScreenResult {
-  engage: boolean;
-  usage: TokenUsage;
-}
-
 // ─── Prediction Schema ──────────────────────────────
 
 const megathreadPredictionSchema = z.object({
@@ -119,49 +108,6 @@ function buildUsage(res: AgentResult): TokenUsage {
 
 type MegathreadPrediction = z.infer<typeof megathreadPredictionSchema>;
 
-// ─── Quick Screen (Cheap Engage Check) ──────────────
-
-export async function screenMegathreadRound(
-  runtime: AgentRuntime,
-  projectId: string,
-): Promise<ScreenResult> {
-  try {
-    const { system, prompt } = buildScreenPrompt(runtime, {
-      projectId,
-    });
-
-    const model = await getScreenModel();
-    const res = await generateObject({
-      model,
-      messages: [cacheableSystem(system), { role: 'user' as const, content: prompt }],
-      schema: screenSchema,
-    });
-
-    const usage: TokenUsage = {
-      inputTokens: res.usage?.inputTokens ?? 0,
-      outputTokens: res.usage?.outputTokens ?? 0,
-      cacheReadTokens: res.usage?.inputTokenDetails?.cacheReadTokens ?? 0,
-      cacheWriteTokens: res.usage?.inputTokenDetails?.cacheWriteTokens ?? 0,
-      toolCalls: 0,
-      toolNames: [],
-      toolResults: [],
-    };
-
-    return { engage: res.object.engage, usage };
-  } catch (err: unknown) {
-    const emptyUsage: TokenUsage = {
-      inputTokens: 0,
-      outputTokens: 0,
-      cacheReadTokens: 0,
-      cacheWriteTokens: 0,
-      toolCalls: 0,
-      toolNames: [],
-      toolResults: [],
-    };
-    return { engage: true, usage: emptyUsage };
-  }
-}
-
 // ─── Megathread Round Analysis ──────────────────────
 
 export async function processMegathreadRound({
@@ -180,7 +126,7 @@ export async function processMegathreadRound({
   priceAtStart?: number;
   currentPrice?: number;
   currentTime?: Date;
-}): Promise<{ skip: boolean; summary: string; conviction: Conviction; usage: TokenUsage }> {
+}): Promise<{ summary: string; conviction: Conviction; usage: TokenUsage }> {
   const promptOptions: BuildMegathreadPromptOptions = {
     projectId,
     durationMs,
@@ -222,16 +168,16 @@ export async function processMegathreadRound({
 
   const { output } = res;
   if (!output) {
-    return { skip: true, summary: '', conviction: 0, usage };
+    return { summary: '', conviction: 0, usage };
   }
 
   const prediction = output as MegathreadPrediction;
 
   if (prediction.summary === null || prediction.conviction === null) {
-    return { skip: true, summary: '', conviction: 0, usage };
+    return { summary: '', conviction: 0, usage };
   }
 
-  return { skip: false, summary: prediction.summary, conviction: prediction.conviction, usage };
+  return { summary: prediction.summary, conviction: prediction.conviction, usage };
 }
 
 // ─── Memory Extraction ──────────────────────────────

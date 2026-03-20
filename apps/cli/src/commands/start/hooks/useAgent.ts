@@ -1,7 +1,7 @@
 import type { ActiveRound } from '@zhive/sdk';
 import { HiveAgent } from '@zhive/sdk';
 import { useEffect, useRef, useState } from 'react';
-import type { ScreenResult, TokenUsage } from '../../../shared/agent/analysis.js';
+import type { TokenUsage } from '../../../shared/agent/analysis.js';
 import { extractErrorMessage } from '../../../shared/agent/utils.js';
 import { ModelInfo, resolveModelInfo } from '../../../shared/config/ai-providers.js';
 import { type AgentStats, fetchBulkStats } from '../../../shared/config/agent.js';
@@ -118,23 +118,23 @@ export function useAgent(): UseAgentState {
         onResearching(): void {
           // TUI status is already 'analyzing' from onRoundStart
         },
-        onScreenResult(round: ActiveRound, result: ScreenResult): void {
-          if (!result.engage) {
-            finalizeMegathreadActivity(round.roundId, {
-              status: 'skipped',
-              skipReason: 'screened out',
-              tokenUsage: result.usage,
-            });
-          }
+        onScreenStart() {
+          addLog({
+            type: 'idle',
+            text: `Screen megathread round to engage`,
+            timestamp: new Date(),
+          });
+        },
+
+        onScreenResult(engagingRounds: ActiveRound[], totalRound: number): void {
+          addLog({
+            type: 'idle',
+            text: `Screen completed, Processing ${engagingRounds.length} rounds out of total ${totalRound} rounds`,
+            timestamp: new Date(),
+          });
         },
         onToolsUsed(): void {
           // TUI does not display tool usage inline
-        },
-        onSkipped(round: ActiveRound, usage: TokenUsage): void {
-          finalizeMegathreadActivity(round.roundId, {
-            status: 'skipped',
-            tokenUsage: usage,
-          });
         },
         onPosted(
           round: ActiveRound,
@@ -165,7 +165,9 @@ export function useAgent(): UseAgentState {
       // eslint-disable-next-line prefer-const
       let agent: HiveAgent;
       const roundHandler = createMegathreadRoundHandler(() => agent, runtime, tuiReporter);
-      const batchHandler = createMegathreadRoundBatchHandler(() => agent, runtime, tuiReporter);
+      const batchHandler = createMegathreadRoundBatchHandler(() => agent, runtime, tuiReporter, {
+        maxConcurrency: 1,
+      });
 
       agent = new HiveAgent(HIVE_API_URL, {
         name: config.name,
@@ -181,6 +183,7 @@ export function useAgent(): UseAgentState {
         },
         onNewMegathreadRound: roundHandler,
         onNewMegathreadRounds: batchHandler,
+        megathreadHandlerBatchSize: 100,
       });
 
       agentRef.current = agent;

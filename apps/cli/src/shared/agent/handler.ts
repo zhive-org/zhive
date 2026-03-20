@@ -1,24 +1,25 @@
-import type { ActiveRound, Conviction, HiveAgent } from '@zhive/sdk';
-import {
-  processMegathreadRound,
-  screenMegathreadRound,
-  type ScreenResult,
-  type TokenUsage,
-} from './analysis.js';
-import { getMarketClient } from './tools/market/index.js';
-import { extractErrorMessage } from './utils.js';
-import { AgentRuntime } from './runtime.js';
+import type {
+  ActiveRound,
+  BatchCreateMegathreadCommentDto,
+  Conviction,
+  HiveAgent,
+} from '@zhive/sdk';
+import _ from 'lodash';
 import { getPrice } from '../ta/service.js';
+import { processMegathreadRound, type TokenUsage } from './analysis.js';
+import { AgentRuntime } from './runtime.js';
+import { screenMegathreadRounds } from './scanner.js';
+import { extractErrorMessage } from './utils.js';
 
 // ─── Megathread Round Handler ──────────────────────
 
 export interface MegathreadReporter {
   onRoundStart(round: ActiveRound, timeframe: string): void;
   onPriceInfo(priceAtStart: number, currentPrice?: number): void;
-  onScreenResult?(round: ActiveRound, result: ScreenResult): void;
+  onScreenStart?(): void;
+  onScreenResult?(engagingRounds: ActiveRound[], totalRound: number): void;
   onResearching(projectId: string): void;
   onToolsUsed(toolNames: string[], callCount: number): void;
-  onSkipped(round: ActiveRound, usage: TokenUsage): void;
   onPosted(
     round: ActiveRound,
     conviction: number,
@@ -71,10 +72,7 @@ async function run({
   runtime: AgentRuntime;
   reporter: MegathreadReporter;
   recentComments: readonly string[];
-}): Promise<
-  | { skip: false; summary: string; conviction: Conviction; usage: TokenUsage }
-  | { skip: true; usage: TokenUsage; screenResult?: ScreenResult }
-> {
+}): Promise<{ summary: string; conviction: Conviction; usage?: TokenUsage }> {
   const timeframe = calculateTimeframe(round);
   reporter.onRoundStart(round, timeframe);
   // ── Fetch prices ──────────────────────────────
@@ -87,74 +85,88 @@ async function run({
     reporter.onPriceInfo(priceAtStart, currentPrice);
   }
 
-  // ── Quick screen (cheap engage check) ───────
-  const screenResult = await screenMegathreadRound(runtime, round.projectId);
-  if (!screenResult.engage) {
-    reporter.onScreenResult?.(round, screenResult);
-    return { skip: true, usage: screenResult.usage, screenResult };
-  }
-
   reporter.onResearching(round.projectId);
 
   // ── Run analysis ──────────────────────────────
-  const result = await processMegathreadRound({
-    projectId: round.projectId,
-    durationMs: round.durationMs,
-    recentComments,
-    agentRuntime: runtime,
-    priceAtStart,
-    currentPrice,
-  });
+  try {
+    const result = await processMegathreadRound({
+      projectId: round.projectId,
+      durationMs: round.durationMs,
+      recentComments,
+      agentRuntime: runtime,
+      priceAtStart,
+      currentPrice,
+    });
+    reporter.onToolsUsed(result.usage.toolNames, result.usage.toolCalls);
+    if (!result.summary) {
+      reporter.onError(round, 'Fail to generate summary');
+    } else {
+      reporter.onPosted(round, result.conviction, result.summary, timeframe, result.usage);
+    }
 
-  reporter.onToolsUsed(result.usage.toolNames, result.usage.toolCalls);
-  if (result.skip) {
-    reporter.onSkipped(round, result.usage);
+    return result;
+  } catch (e) {
+    reporter.onError(round, 'Failed to process megathread round');
+    return { summary: '', conviction: 0 };
   }
-
-  return result;
 }
 
 export function createMegathreadRoundBatchHandler(
   getAgent: () => HiveAgent,
   runtime: AgentRuntime,
   reporter: MegathreadReporter,
+  options: {
+    maxConcurrency?: number;
+  } = {},
 ): (rounds: ActiveRound[]) => Promise<void> {
+  const { maxConcurrency = 1 } = options;
   const handler = async (rounds: ActiveRound[]): Promise<void> => {
-    const agent = getAgent();
-    const promises: ReturnType<typeof run>[] = [];
-
-    // report item in order that it is polled to prevent out-of-order write to stdout
-    for (const round of rounds) {
-      promises.push(run({ round, runtime, reporter, recentComments: agent.recentComments }));
+    let filteredRounds = rounds;
+    // don't processed more than 50% of the rounds to save api cost
+    const maxProcessRound = rounds.length / 2;
+    if (maxProcessRound > 0) {
+      reporter.onScreenStart?.();
+      filteredRounds = await screenMegathreadRounds(runtime, rounds, { limit: maxProcessRound });
+      reporter.onScreenResult?.(filteredRounds, rounds.length);
     }
 
-    const results = await Promise.allSettled(promises);
-
-    for (let i = 0; i < results.length; i++) {
-      const round = rounds[i];
-      const result = results[i];
-      if (result.status === 'rejected') {
-        const raw = extractErrorMessage(result.reason);
-        const message = raw.length > 120 ? raw.slice(0, 120) + '\u2026' : raw;
-        reporter.onError(round, message);
-        continue;
+    const chunks = _.chunk(filteredRounds, maxConcurrency);
+    for (const chunk of chunks) {
+      const promises: ReturnType<typeof run>[] = [];
+      // obtain fresh instance of agent as memory of agent might change from each round processed
+      const agent = getAgent();
+      for (const round of chunk) {
+        promises.push(run({ round, runtime, reporter, recentComments: agent.recentComments }));
       }
 
-      const data = result.value;
+      const results = await Promise.allSettled(promises);
 
-      if (data.skip) {
-        continue;
+      const payload: BatchCreateMegathreadCommentDto = { comments: [] };
+      for (let i = 0; i < results.length; i++) {
+        const round = chunk[i];
+        const result = results[i];
+        if (result.status === 'rejected') {
+          const raw = extractErrorMessage(result.reason);
+          const message = raw.length > 120 ? raw.slice(0, 120) + '\u2026' : raw;
+          reporter.onError(round, message);
+          continue;
+        }
+
+        const data = result.value;
+        if (!data.summary) {
+          continue;
+        }
+
+        payload.comments.push({
+          conviction: data.conviction,
+          roundId: round.roundId,
+          text: data.summary,
+        });
       }
 
-      // TODO: we can optimized this by create method to commit this in batch in hive sdk.
-      // postMegathreadComment cannot be run concurrently so we need to call it one by one.
-      await agent.postMegathreadComment(round.roundId, {
-        text: data.summary,
-        conviction: data.conviction,
-      });
-
-      const timeframe = calculateTimeframe(round);
-      reporter.onPosted(round, data.conviction, data.summary, timeframe, data.usage);
+      if (payload.comments.length > 0) {
+        await agent.postBatchMegathreadComments(payload).catch((e) => console.log(e));
+      }
     }
   };
 
@@ -175,7 +187,7 @@ export function createMegathreadRoundHandler(
         recentComments: agent.recentComments,
         runtime,
       });
-      if (result.skip) {
+      if (result.summary) {
         return;
       }
       // ── Post comment ──────────────────────────────
@@ -185,7 +197,6 @@ export function createMegathreadRoundHandler(
       });
 
       const timeframe = calculateTimeframe(round);
-      reporter.onPosted(round, result.conviction, result.summary, timeframe, result.usage);
     } catch (err: unknown) {
       const raw = extractErrorMessage(err);
       const message = raw.length > 120 ? raw.slice(0, 120) + '\u2026' : raw;

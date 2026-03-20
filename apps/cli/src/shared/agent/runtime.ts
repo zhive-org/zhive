@@ -1,8 +1,8 @@
+import { loadMemory } from '@zhive/sdk';
 import { LanguageModel, Tool } from 'ai';
 import { AgentConfig, loadAgentConfig } from '../config/agent.js';
-import { SkillDefinition } from './skills/types.js';
-import { loadMemory } from '@zhive/sdk';
 import { getModel } from '../config/ai-providers.js';
+import { SkillDefinition } from './skills/types.js';
 import { getAllTools, getExecuteSkillTool, initializeSkills } from './tools/index.js';
 
 export interface AgentRuntime {

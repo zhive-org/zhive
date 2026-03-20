@@ -1,6 +1,6 @@
 import { HiveAgent } from '@zhive/sdk';
 import type { ActiveRound } from '@zhive/sdk';
-import type { ScreenResult, TokenUsage } from '../../shared/agent/analysis.js';
+import type { TokenUsage } from '../../shared/agent/analysis.js';
 import { HIVE_API_URL, HIVE_FRONTEND_URL } from '../../shared/config/constant.js';
 import { resolveModelInfo } from '../../shared/config/ai-providers.js';
 import { formatTokenCount, formatTokenUsage } from '../../shared/agent/utils.js';
@@ -47,11 +47,8 @@ export async function runHeadless(): Promise<void> {
         console.log(`[${timestamp()}] round-start price: $${priceAtStart}`);
       }
     },
-    onScreenResult(round: ActiveRound, result: ScreenResult): void {
-      const verdict = result.engage ? 'engage' : 'skip';
-      console.log(`[${timestamp()}] screen c/${round.projectId}: ${verdict}`);
-      totalInputTokens += result.usage.inputTokens;
-      totalOutputTokens += result.usage.outputTokens;
+    onScreenResult(rounds, totalRounds): void {
+      console.log(`[${timestamp()}] screen. process ${rounds.length} out of ${totalRounds}`);
     },
     onResearching(projectId: string): void {
       console.log(`[${timestamp()}] researching c/${projectId}...`);
@@ -62,13 +59,6 @@ export async function runHeadless(): Promise<void> {
       } else {
         console.log(`  tools: none`);
       }
-    },
-    onSkipped(round: ActiveRound, usage: TokenUsage): void {
-      totalInputTokens += usage.inputTokens;
-      totalOutputTokens += usage.outputTokens;
-      totalToolCalls += usage.toolCalls;
-      console.log(`[${timestamp()}] skipped c/${round.projectId} — outside expertise`);
-      console.log(formatUsageLine(usage));
     },
     onPosted(
       round: ActiveRound,
