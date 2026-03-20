@@ -7,10 +7,8 @@ import { fetchRulesTool } from '../../../shared/agent/tools/fetch-rules.js';
 import { extractErrorMessage } from '../../../shared/agent/utils.js';
 import { loadAgentConfig } from '../../../shared/config/agent.js';
 import { getModel } from '../../../shared/config/ai-providers.js';
-import { backtestSlashCommand } from '../commands/backtest.js';
 import { predictionSlashCommand } from '../commands/prediction.js';
 import { skillsSlashCommand } from '../commands/skills.js';
-import { RunnerConfig } from '../services/backtest/index.js';
 import { SLASH_COMMANDS } from '../services/command-registry.js';
 import { ChatActivityItem } from './types.js';
 
@@ -98,46 +96,6 @@ export function useChat(agentName: string): UseChatState & UseChatActions {
             const memoryOutput = memoryRef.current || 'No memory stored yet.';
             addChatActivity({ type: 'chat-agent', text: memoryOutput });
           },
-          // '/backtest': async () => {
-          //   const config: RunnerConfig = {
-          //     agentPath: process.cwd(),
-          //     soulContent: soulContentRef.current,
-          //     strategyContent: strategyContentRef.current,
-          //     agentName: agentName,
-          //   };
-          //   await backtestSlashCommand(parts.slice(1), config, {
-          //     onFetchStart: (numThreads) => {
-          //       addChatActivity({
-          //         type: 'chat-agent',
-          //         text: `Fetching ${numThreads} resolved threads...`,
-          //       });
-          //     },
-          //     onFetchError: (error: string) => {
-          //       addChatActivity({
-          //         type: 'chat-agent',
-          //         text: `API fetch failed (${error}), falling back to default dataset...`,
-          //       });
-          //       addChatActivity({
-          //         type: 'chat-agent',
-          //         text: 'Starting backtest against default dataset...',
-          //       });
-          //     },
-          //     onThreadStart: (index, total, thread) => {
-          //       addChatActivity({
-          //         type: 'chat-agent',
-          //         text: `Processing ${index + 1}/${total}: ${thread.project_name}...`,
-          //       });
-          //     },
-          //     onBacktestSuccess: (report: string) => {
-          //       addChatActivity({ type: 'chat-agent', text: report });
-          //       sessionMessagesRef.current.push({ role: 'assistant', content: report });
-          //     },
-          //     onBacktestError: (err: unknown) => {
-          //       const errMessage = extractErrorMessage(err);
-          //       addChatActivity({ type: 'chat-error', text: `Backtest failed: ${errMessage}` });
-          //     },
-          //   });
-          // },
           '/prediction': async () => {
             await predictionSlashCommand(agentName, {
               onFetchStart: () => {
