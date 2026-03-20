@@ -18,7 +18,7 @@ export type PollActivityItem = BasePollActivityItem &
         projectId: string;
         timeframe: string;
       } & MegathreadResult)
-    | { type: 'idle'; text: string }
+    | { type: 'message'; text: string }
     | { type: 'online'; bio: string; name: string }
     | { type: 'error'; errorMessage: string }
   );

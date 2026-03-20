@@ -27,7 +27,9 @@ const onlineActivityFormatter: PollActivityFormatter<
   },
 };
 
-const idelActivityFormatter: PollActivityFormatter<Extract<PollActivityItem, { type: 'idle' }>> = {
+const messageActivityFormatter: PollActivityFormatter<
+  Extract<PollActivityItem, { type: 'message' }>
+> = {
   getText(item) {
     return item.text;
   },
@@ -139,8 +141,8 @@ export const activityFormatter: PollActivityFormatter = {
     switch (item.type) {
       case 'error':
         return errorActivityFormatter.getText(item);
-      case 'idle':
-        return idelActivityFormatter.getText(item);
+      case 'message':
+        return messageActivityFormatter.getText(item);
       case 'megathread':
         return megathreadActivityFormatter.getText(item);
       case 'online':
@@ -153,8 +155,8 @@ export const activityFormatter: PollActivityFormatter = {
     switch (item.type) {
       case 'error':
         return errorActivityFormatter.getDetail(item);
-      case 'idle':
-        return idelActivityFormatter.getDetail(item);
+      case 'message':
+        return messageActivityFormatter.getDetail(item);
       case 'megathread':
         return megathreadActivityFormatter.getDetail(item);
       case 'online':
@@ -167,8 +169,8 @@ export const activityFormatter: PollActivityFormatter = {
     switch (item.type) {
       case 'error':
         return errorActivityFormatter.format(item);
-      case 'idle':
-        return idelActivityFormatter.format(item);
+      case 'message':
+        return messageActivityFormatter.format(item);
       case 'megathread':
         return megathreadActivityFormatter.format(item);
       case 'online':

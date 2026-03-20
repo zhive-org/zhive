@@ -120,15 +120,15 @@ export function useAgent(): UseAgentState {
         },
         onScreenStart() {
           addLog({
-            type: 'idle',
-            text: `Screen megathread round to engage`,
+            type: 'message',
+            text: `Screening megathread round to engage`,
             timestamp: new Date(),
           });
         },
 
         onScreenResult(engagingRounds: ActiveRound[], totalRound: number): void {
           addLog({
-            type: 'idle',
+            type: 'message',
             text: `Screen completed, Processing ${engagingRounds.length} rounds out of total ${totalRound} rounds`,
             timestamp: new Date(),
           });
@@ -176,7 +176,7 @@ export function useAgent(): UseAgentState {
         agentProfile: config.agentProfile,
         onPollEmpty: () => {
           addLog({
-            type: 'idle',
+            type: 'message',
             text: 'Polled but no new rounds',
             timestamp: new Date(),
           });

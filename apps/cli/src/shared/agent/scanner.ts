@@ -1,9 +1,12 @@
 import { ActiveRound, durationMsToTimeframe } from '@zhive/sdk';
 import z from 'zod';
 import { humanDuration } from './utils.js';
-import { generateText, Output } from 'ai';
 import { AgentRuntime } from './runtime.js';
 import _ from 'lodash';
+import { wrapAISDK } from 'langsmith/experimental/vercel';
+import * as ai from 'ai';
+
+const { generateText, Output } = wrapAISDK(ai);
 
 const schema = z.object({
   rounds: z

@@ -6,29 +6,22 @@ import {
   saveMemory,
 } from '@zhive/sdk';
 import * as ai from 'ai';
-import { z } from 'zod';
-import { getModel, getScreenModel } from '../config/ai-providers.js';
-import { AgentRuntime } from './runtime.js';
-import type { ChatMessage } from './prompts/chat-prompt.js';
-import { buildMemoryExtractionPrompt } from './prompts/memory-prompt.js';
-import { extractErrorMessage, stripCodeFences } from './utils.js';
 import { wrapAISDK } from 'langsmith/experimental/vercel';
-import { type SystemModelMessage } from 'ai';
-import { buildScreenPrompt } from './prompts/prompt.js';
+import { z } from 'zod';
+import { getModel } from '../config/ai-providers.js';
+import { cacheableSystem } from './cache.js';
+import type { ChatMessage } from './prompts/chat-prompt.js';
 import {
   buildMegathreadInputPrompt,
   BuildMegathreadPromptOptions,
   buildMegathreadSystemPrompt,
 } from './prompts/megathread.js';
-import {
-  getExecuteSkillTool,
-  clearSubagentUsage,
-  getSubagentUsage,
-  type SubagentUsage,
-} from './tools/index.js';
-import { cacheableSystem } from './cache.js';
+import { buildMemoryExtractionPrompt } from './prompts/memory-prompt.js';
+import { AgentRuntime } from './runtime.js';
+import { clearSubagentUsage, getSubagentUsage, type SubagentUsage } from './tools/index.js';
+import { extractErrorMessage, stripCodeFences } from './utils.js';
 
-const { ToolLoopAgent, generateText, generateObject, Output } = wrapAISDK(ai);
+const { ToolLoopAgent, generateText, Output } = wrapAISDK(ai);
 
 export type { SubagentUsage };
 

@@ -14,7 +14,7 @@ export const usePollActivity = () => {
 
   // idle, online, error
   const addLog = useCallback(
-    (item: Extract<PollActivityItem, { type: 'idle' | 'online' | 'error' }>) => {
+    (item: Extract<PollActivityItem, { type: 'message' | 'online' | 'error' }>) => {
       setPollActivityQueues((prev) => {
         const { active, settled } = prev;
         let updated = [...settled, item];
@@ -33,6 +33,9 @@ export const usePollActivity = () => {
       setPollActivityQueues((prev) => {
         const { active, settled } = prev;
         let updated = [...active, item];
+        if (updated.length > MAX_ITEM) {
+          updated = updated.slice(updated.length - MAX_ITEM);
+        }
         return { active: updated, settled };
       });
     },
