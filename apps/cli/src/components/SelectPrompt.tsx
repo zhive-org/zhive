@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Box, Text } from 'ink';
+import { Box, Text, useInput } from 'ink';
 import SelectInput from 'ink-select-input';
 import { colors, symbols } from '../commands/shared/theme.js';
 
@@ -12,11 +12,20 @@ export interface SelectItem {
 interface SelectPromptProps {
   label: string;
   items: SelectItem[];
+  defaultValue?: string;
   onSelect: (item: SelectItem) => void;
+  onBack?: () => void;
 }
 
-export function SelectPrompt({ label, items, onSelect }: SelectPromptProps): React.ReactElement {
-  const [highlightedValue, setHighlightedValue] = useState<string>(items[0]?.value ?? '');
+export function SelectPrompt({ label, items, defaultValue, onSelect, onBack }: SelectPromptProps): React.ReactElement {
+  const initialIndex = defaultValue ? Math.max(0, items.findIndex((i) => i.value === defaultValue)) : 0;
+  const [highlightedValue, setHighlightedValue] = useState<string>(defaultValue ?? items[0]?.value ?? '');
+
+  useInput((_input, key) => {
+    if (key.escape && onBack) {
+      onBack();
+    }
+  });
 
   const handleSelect = (item: { label: string; value: string }): void => {
     const found = items.find((i) => i.value === item.value);
@@ -43,6 +52,7 @@ export function SelectPrompt({ label, items, onSelect }: SelectPromptProps): Rea
       <Box marginLeft={2}>
         <SelectInput
           items={items}
+          initialIndex={initialIndex}
           onSelect={handleSelect}
           onHighlight={handleHighlight}
           indicatorComponent={({ isSelected }) => (
@@ -57,6 +67,13 @@ export function SelectPrompt({ label, items, onSelect }: SelectPromptProps): Rea
         <Box marginLeft={4} marginTop={1}>
           <Text color={colors.gray} italic>
             {symbols.arrow} {highlightedDescription}
+          </Text>
+        </Box>
+      )}
+      {onBack && (
+        <Box marginLeft={2} marginTop={1}>
+          <Text color={colors.grayDim}>
+            <Text color={colors.honey}>esc</Text> back
           </Text>
         </Box>
       )}

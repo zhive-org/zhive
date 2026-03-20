@@ -34,6 +34,8 @@ export interface IdentityResult {
 
 interface IdentityStepProps {
   agentName: string;
+  onBack?: () => void;
+  initialValues?: Partial<IdentityResult>;
   onComplete: (result: IdentityResult) => void;
 }
 
@@ -72,21 +74,67 @@ const sentimentItems = buildSelectItems(SENTIMENT_OPTIONS);
 const timeframeItems = buildSelectItems(TIMEFRAME_OPTIONS);
 const timeframeDefaultSelected = new Set(TIMEFRAME_OPTIONS.map((opt) => opt.value));
 
-export function IdentityStep({ agentName, onComplete }: IdentityStepProps): React.ReactElement {
-  const [subStep, setSubStep] = useState<SubStep>('personality');
-  const [personalityLabel, setPersonalityLabel] = useState('');
-  const [personality, setPersonality] = useState('');
-  const [tone, setTone] = useState('');
-  const [voiceStyle, setVoiceStyle] = useState('');
-  const [voiceLabel, setVoiceLabel] = useState('');
-  const [tradingStyle, setTradingStyle] = useState('');
-  const [tradingStyleLabel, setTradingStyleLabel] = useState('');
-  const [sectors, setSectors] = useState<string[]>([]);
-  const [sectorsLabel, setSectorsLabel] = useState('');
-  const [sentiment, setSentiment] = useState('');
-  const [sentimentLabel, setSentimentLabel] = useState('');
-  const [timeframes, setTimeframes] = useState<string[]>([]);
-  const [timeframesLabel, setTimeframesLabel] = useState('');
+export function IdentityStep({
+  agentName,
+  onBack,
+  initialValues,
+  onComplete,
+}: IdentityStepProps): React.ReactElement {
+  const hasInitial = initialValues && initialValues.bio;
+  const [subStep, setSubStep] = useState<SubStep>(hasInitial ? 'bio' : 'personality');
+  const [personalityLabel, setPersonalityLabel] = useState(initialValues?.personality ?? '');
+  const [personality, setPersonality] = useState(initialValues?.personality ?? '');
+  const [personalitySelectValue, setPersonalitySelectValue] = useState('');
+  const [tone, setTone] = useState(initialValues?.tone ?? '');
+  const [voiceStyle, setVoiceStyle] = useState(initialValues?.voiceStyle ?? '');
+  const [voiceLabel, setVoiceLabel] = useState(initialValues?.voiceStyle ?? '');
+  const [voiceSelectValue, setVoiceSelectValue] = useState('');
+  const [tradingStyle, setTradingStyle] = useState(initialValues?.tradingStyle ?? '');
+  const [tradingStyleLabel, setTradingStyleLabel] = useState(initialValues?.tradingStyle ?? '');
+  const [sectors, setSectors] = useState<string[]>(initialValues?.sectors ?? []);
+  const [sectorsLabel, setSectorsLabel] = useState(initialValues?.sectors?.join(', ') ?? '');
+  const [sentiment, setSentiment] = useState(initialValues?.sentiment ?? '');
+  const [sentimentLabel, setSentimentLabel] = useState(initialValues?.sentiment ?? '');
+  const [timeframes, setTimeframes] = useState<string[]>(initialValues?.timeframes ?? []);
+  const [timeframesLabel, setTimeframesLabel] = useState(
+    initialValues?.timeframes?.join(', ') ?? '',
+  );
+  const [bio, setBio] = useState(initialValues?.bio ?? '');
+
+  const handleSubStepBack = useCallback(() => {
+    switch (subStep) {
+      case 'personality':
+        onBack?.();
+        break;
+      case 'personality-custom':
+        setSubStep('personality');
+        break;
+      case 'voice':
+        setSubStep('personality');
+        break;
+      case 'voice-custom':
+        setSubStep('voice');
+        break;
+      case 'trading':
+        setSubStep('voice');
+        break;
+      case 'trading-custom':
+        setSubStep('trading');
+        break;
+      case 'sectors':
+        setSubStep('trading');
+        break;
+      case 'sentiment':
+        setSubStep('sectors');
+        break;
+      case 'timeframe':
+        setSubStep('sentiment');
+        break;
+      case 'bio':
+        setSubStep('timeframe');
+        break;
+    }
+  }, [subStep, onBack]);
 
   const handlePersonalitySelect = useCallback((item: SelectItem) => {
     if (item.value === '__custom__') {
@@ -97,6 +145,7 @@ export function IdentityStep({ agentName, onComplete }: IdentityStepProps): Reac
     const personalityValue = `${item.label} — ${description}`;
     setPersonality(personalityValue);
     setPersonalityLabel(item.label);
+    setPersonalitySelectValue(item.value);
     setSubStep('voice');
   }, []);
 
@@ -115,6 +164,7 @@ export function IdentityStep({ agentName, onComplete }: IdentityStepProps): Reac
     setTone(voiceOption.tone);
     setVoiceStyle(voiceOption.voiceStyle);
     setVoiceLabel(item.label);
+    setVoiceSelectValue(item.value);
     setSubStep('trading');
   }, []);
 
@@ -167,6 +217,7 @@ export function IdentityStep({ agentName, onComplete }: IdentityStepProps): Reac
 
   const handleBio = useCallback(
     (value: string) => {
+      setBio(value);
       const result: IdentityResult = {
         personality,
         tone,
@@ -192,13 +243,16 @@ export function IdentityStep({ agentName, onComplete }: IdentityStepProps): Reac
         sectors={sectorsLabel || undefined}
         sentiment={sentimentLabel || undefined}
         timeframe={timeframesLabel || undefined}
+        bio={bio || undefined}
       />
 
       {subStep === 'personality' && (
         <SelectPrompt
           label="Choose a personality"
           items={personalityItems}
+          defaultValue={personalitySelectValue || undefined}
           onSelect={handlePersonalitySelect}
+          onBack={onBack ? handleSubStepBack : undefined}
         />
       )}
 
@@ -207,12 +261,19 @@ export function IdentityStep({ agentName, onComplete }: IdentityStepProps): Reac
           label="Describe your agent's personality"
           placeholder="e.g. stoic realist with a dry wit"
           onSubmit={handlePersonalityCustom}
+          onBack={handleSubStepBack}
           validate={required('Personality')}
         />
       )}
 
       {subStep === 'voice' && (
-        <SelectPrompt label="Choose a voice" items={voiceItems} onSelect={handleVoiceSelect} />
+        <SelectPrompt
+          label="Choose a voice"
+          items={voiceItems}
+          defaultValue={voiceSelectValue || undefined}
+          onSelect={handleVoiceSelect}
+          onBack={handleSubStepBack}
+        />
       )}
 
       {subStep === 'voice-custom' && (
@@ -220,6 +281,7 @@ export function IdentityStep({ agentName, onComplete }: IdentityStepProps): Reac
           label="Describe your agent's voice"
           placeholder="e.g. writes like a bloomberg terminal on acid"
           onSubmit={handleVoiceCustom}
+          onBack={handleSubStepBack}
           validate={required('Voice')}
         />
       )}
@@ -228,7 +290,9 @@ export function IdentityStep({ agentName, onComplete }: IdentityStepProps): Reac
         <SelectPrompt
           label="How does your agent evaluate signals?"
           items={tradingStyleItems}
+          defaultValue={tradingStyle || undefined}
           onSelect={handleTradingStyleSelect}
+          onBack={handleSubStepBack}
         />
       )}
 
@@ -237,6 +301,7 @@ export function IdentityStep({ agentName, onComplete }: IdentityStepProps): Reac
           label="Describe your agent's trading style"
           placeholder="e.g. combines on-chain data with sentiment analysis"
           onSubmit={handleTradingStyleCustom}
+          onBack={handleSubStepBack}
           validate={required('Trading style')}
         />
       )}
@@ -245,9 +310,10 @@ export function IdentityStep({ agentName, onComplete }: IdentityStepProps): Reac
         <MultiSelectPrompt
           label="Which categories should your agent trade?"
           items={sectorItems}
-          defaultSelected={DEFAULT_SECTOR_VALUES}
+          defaultSelected={sectors.length > 0 ? new Set(sectors) : DEFAULT_SECTOR_VALUES}
           hint="Recommended categories selected — press spacebar to toggle"
           onSubmit={handleSectors}
+          onBack={handleSubStepBack}
         />
       )}
 
@@ -255,7 +321,9 @@ export function IdentityStep({ agentName, onComplete }: IdentityStepProps): Reac
         <SelectPrompt
           label="What's your agent's market sentiment?"
           items={sentimentItems}
+          defaultValue={sentiment || undefined}
           onSelect={handleSentimentSelect}
+          onBack={handleSubStepBack}
         />
       )}
 
@@ -264,9 +332,10 @@ export function IdentityStep({ agentName, onComplete }: IdentityStepProps): Reac
           <MultiSelectPrompt
             label="Which timeframes should your agent participate in?"
             items={timeframeItems}
-            defaultSelected={timeframeDefaultSelected}
+            defaultSelected={timeframes.length > 0 ? new Set(timeframes) : timeframeDefaultSelected}
             hint="all timeframes selected by default — press spacebar to toggle"
             onSubmit={handleTimeframes}
+            onBack={handleSubStepBack}
           />
         </Box>
       )}
@@ -288,7 +357,9 @@ export function IdentityStep({ agentName, onComplete }: IdentityStepProps): Reac
           <TextPrompt
             label="Write your agent's bio"
             placeholder={`short bio for your ${personalityLabel} agent`}
+            defaultValue={bio || undefined}
             onSubmit={handleBio}
+            onBack={handleSubStepBack}
             maxLength={1000}
             validate={compose(required('Bio'), maxLength(1000))}
           />

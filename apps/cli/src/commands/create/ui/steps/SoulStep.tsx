@@ -16,6 +16,8 @@ interface SoulStepProps {
   sectors: string[];
   sentiment: string;
   timeframes: string[];
+  initialContent?: string;
+  onBack?: (draft?: string) => void;
   onComplete: (soulContent: string) => void;
 }
 
@@ -32,6 +34,8 @@ export function SoulStep({
   sectors,
   sentiment,
   timeframes,
+  initialContent,
+  onBack,
   onComplete,
 }: SoulStepProps): React.ReactElement {
   const createStream = useCallback(
@@ -68,6 +72,6 @@ export function SoulStep({
   );
 
   return (
-    <StreamingGenerationStep title="SOUL.md" createStream={createStream} onComplete={onComplete} />
+    <StreamingGenerationStep title="SOUL.md" initialContent={initialContent} createStream={createStream} onBack={onBack} onComplete={onComplete} />
   );
 }

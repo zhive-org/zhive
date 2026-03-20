@@ -15,6 +15,8 @@ interface StrategyStepProps {
   sectors: string[];
   sentiment: string;
   timeframes: string[];
+  initialContent?: string;
+  onBack?: (draft?: string) => void;
   onComplete: (strategyContent: string) => void;
 }
 
@@ -30,6 +32,8 @@ export function StrategyStep({
   sectors,
   sentiment,
   timeframes,
+  initialContent,
+  onBack,
   onComplete,
 }: StrategyStepProps): React.ReactElement {
   const createStream = useCallback(
@@ -66,7 +70,9 @@ export function StrategyStep({
   return (
     <StreamingGenerationStep
       title="STRATEGY.md"
+      initialContent={initialContent}
       createStream={createStream}
+      onBack={onBack}
       onComplete={onComplete}
     />
   );

@@ -5,10 +5,12 @@ import { colors, symbols } from '../../../shared/theme.js';
 
 interface AvatarStepProps {
   agentName: string;
+  defaultValue?: string;
+  onBack?: () => void;
   onComplete: (avatarUrl: string) => void;
 }
 
-export function AvatarStep({ agentName, onComplete }: AvatarStepProps): React.ReactElement {
+export function AvatarStep({ agentName, defaultValue, onBack, onComplete }: AvatarStepProps): React.ReactElement {
   const defaultUrl = `https://api.dicebear.com/9.x/bottts-neutral/svg?seed=${encodeURIComponent(agentName)}`;
 
   return (
@@ -21,6 +23,8 @@ export function AvatarStep({ agentName, onComplete }: AvatarStepProps): React.Re
       <TextPrompt
         label="Avatar image URL (press Enter for default)"
         placeholder={defaultUrl}
+        defaultValue={defaultValue}
+        onBack={onBack}
         onSubmit={(val) => onComplete(val || defaultUrl)}
         validate={(val) => {
           if (!val) {

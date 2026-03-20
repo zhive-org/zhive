@@ -14,6 +14,7 @@ interface MultiSelectPromptProps {
   defaultSelected?: Set<string>;
   hint?: string;
   onSubmit: (selected: MultiSelectItem[]) => void;
+  onBack?: () => void;
 }
 
 export function MultiSelectPrompt({
@@ -22,12 +23,17 @@ export function MultiSelectPrompt({
   defaultSelected,
   hint,
   onSubmit,
+  onBack,
 }: MultiSelectPromptProps): React.ReactElement {
   const allValues = new Set(items.map((i) => i.value));
   const [selected, setSelected] = useState<Set<string>>(defaultSelected ?? allValues);
   const [cursor, setCursor] = useState(0);
 
   useInput((_input, key) => {
+    if (key.escape && onBack) {
+      onBack();
+      return;
+    }
     if (key.upArrow) {
       setCursor((prev) => (prev > 0 ? prev - 1 : items.length - 1));
     }
@@ -95,7 +101,9 @@ export function MultiSelectPrompt({
       <Box marginLeft={2} marginTop={1}>
         <Text color={colors.grayDim}>
           <Text color={colors.honey}>spacebar</Text> press to toggle <Text color={colors.honey}>enter</Text>{' '}
-          confirm
+          confirm{onBack && (
+            <Text> <Text color={colors.honey}>esc</Text> back</Text>
+          )}
         </Text>
       </Box>
     </Box>

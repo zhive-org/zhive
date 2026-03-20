@@ -8,7 +8,9 @@ import { colors, symbols } from '../../../shared/theme.js';
 
 interface StreamingGenerationStepProps {
   title: string;
+  initialContent?: string;
   createStream: (feedback?: string) => AsyncIterable<string>;
+  onBack?: (draft?: string) => void;
   onComplete: (content: string) => void;
 }
 
@@ -16,14 +18,18 @@ type Phase = 'streaming' | 'review' | 'error';
 
 export function StreamingGenerationStep({
   title,
+  initialContent,
   createStream,
+  onBack,
   onComplete,
 }: StreamingGenerationStepProps): React.ReactElement {
-  const [phase, setPhase] = useState<Phase>('streaming');
-  const [draft, setDraft] = useState('');
+  const [phase, setPhase] = useState<Phase>(initialContent ? 'review' : 'streaming');
+  const [draft, setDraft] = useState(initialContent ?? '');
   const [errorMessage, setErrorMessage] = useState('');
   const [feedbackCount, setFeedbackCount] = useState(0);
-  const [currentStream, setCurrentStream] = useState<AsyncIterable<string>>(() => createStream());
+  const [currentStream, setCurrentStream] = useState<AsyncIterable<string> | null>(() =>
+    initialContent ? null : createStream(),
+  );
 
   const handleStreamComplete = useCallback((fullText: string) => {
     const trimmed = fullText.trim();
@@ -68,7 +74,7 @@ export function StreamingGenerationStep({
 
   return (
     <Box flexDirection="column">
-      {phase === 'streaming' && (
+      {phase === 'streaming' && currentStream && (
         <Box flexDirection="column">
           <Box marginBottom={1}>
             <Spinner
@@ -103,7 +109,7 @@ export function StreamingGenerationStep({
             </Text>
           </Box>
           <Box marginTop={1}>
-            <TextPrompt label="" placeholder="Enter to retry..." onSubmit={() => handleRetry()} />
+            <TextPrompt label="" placeholder="Enter to retry..." onSubmit={() => handleRetry()} onBack={onBack} />
           </Box>
         </Box>
       )}
@@ -128,6 +134,7 @@ export function StreamingGenerationStep({
             <TextPrompt
               label=""
               placeholder="Enter to accept, or type feedback..."
+              onBack={() => onBack?.(draft)}
               onSubmit={(val) => {
                 if (!val) {
                   handleAccept();

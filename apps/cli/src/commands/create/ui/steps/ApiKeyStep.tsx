@@ -15,10 +15,12 @@ export interface ApiKeyResult {
 }
 
 interface ApiKeyStepProps {
+  initialResult?: ApiKeyResult;
+  onBack?: () => void;
   onComplete: (result: ApiKeyResult) => void;
 }
 
-type Phase = 'check-saved' | 'use-saved' | 'select-provider' | 'enter-key' | 'validating' | 'error';
+type Phase = 'check-saved' | 'use-current' | 'use-saved' | 'select-provider' | 'enter-key' | 'validating' | 'error';
 
 function maskKey(key: string): string {
   if (key.length <= 8) {
@@ -28,8 +30,8 @@ function maskKey(key: string): string {
   return visible;
 }
 
-export function ApiKeyStep({ onComplete }: ApiKeyStepProps): React.ReactElement {
-  const [phase, setPhase] = useState<Phase>('check-saved');
+export function ApiKeyStep({ initialResult, onBack, onComplete }: ApiKeyStepProps): React.ReactElement {
+  const [phase, setPhase] = useState<Phase>(initialResult ? 'use-current' : 'check-saved');
   const [savedConfig, setSavedConfig] = useState<HiveConfig | null>(null);
   const [providerId, setProviderId] = useState<AIProviderId | null>(null);
   const [error, setError] = useState('');
@@ -110,6 +112,35 @@ export function ApiKeyStep({ onComplete }: ApiKeyStepProps): React.ReactElement 
     <Box flexDirection="column">
       {phase === 'check-saved' && <Spinner label="Checking for saved API key..." />}
 
+      {phase === 'use-current' && initialResult && (
+        <Box flexDirection="column">
+          <Box marginBottom={1} marginLeft={2}>
+            <Text color={colors.gray}>
+              {symbols.diamond} Current key:{' '}
+              <Text color={colors.honey}>
+                {AI_PROVIDERS.find((p) => p.id === initialResult.providerId)?.label ?? initialResult.providerId}
+              </Text>{' '}
+              <Text color={colors.grayDim}>({maskKey(initialResult.apiKey)})</Text>
+            </Text>
+          </Box>
+          <SelectPrompt
+            label="Keep current API key?"
+            items={[
+              { label: 'Yes, keep current key', value: 'yes' },
+              { label: 'No, enter a new key', value: 'no' },
+            ]}
+            onSelect={(item) => {
+              if (item.value === 'yes') {
+                onComplete(initialResult);
+              } else {
+                setPhase('select-provider');
+              }
+            }}
+            onBack={onBack}
+          />
+        </Box>
+      )}
+
       {phase === 'use-saved' && savedConfig && savedProvider && (
         <Box flexDirection="column">
           <Box marginBottom={1} marginLeft={2}>
@@ -127,6 +158,7 @@ export function ApiKeyStep({ onComplete }: ApiKeyStepProps): React.ReactElement 
             onSelect={(item) => {
               void handleUseSaved(item);
             }}
+            onBack={onBack}
           />
         </Box>
       )}
@@ -144,6 +176,7 @@ export function ApiKeyStep({ onComplete }: ApiKeyStepProps): React.ReactElement 
             label="Select your AI provider"
             items={providerItems}
             onSelect={handleProviderSelect}
+            onBack={onBack}
           />
         </Box>
       )}
@@ -161,6 +194,7 @@ export function ApiKeyStep({ onComplete }: ApiKeyStepProps): React.ReactElement 
             onSubmit={(key) => {
               void handleKeySubmit(key, providerId);
             }}
+            onBack={() => setPhase('select-provider')}
             validate={validateApiKeyFormat}
           />
         </Box>
@@ -181,6 +215,7 @@ export function ApiKeyStep({ onComplete }: ApiKeyStepProps): React.ReactElement 
             onSubmit={(key) => {
               void handleKeySubmit(key, providerId);
             }}
+            onBack={() => setPhase('select-provider')}
             validate={validateApiKeyFormat}
           />
         </Box>

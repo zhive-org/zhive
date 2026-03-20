@@ -120,10 +120,11 @@ function generateRandomName(): string {
 }
 
 interface NameStepProps {
+  defaultValue?: string;
   onComplete: (name: string) => void;
 }
 
-export function NameStep({ onComplete }: NameStepProps): React.ReactElement {
+export function NameStep({ defaultValue, onComplete }: NameStepProps): React.ReactElement {
   const [checking, setChecking] = useState(false);
   const [error, setError] = useState('');
   const placeholder = useMemo(() => generateRandomName(), []);
@@ -168,6 +169,7 @@ export function NameStep({ onComplete }: NameStepProps): React.ReactElement {
       <TextPrompt
         label="Enter your agent name"
         placeholder={placeholder}
+        defaultValue={defaultValue}
         onSubmit={handleSubmit}
         validate={validateAgentName}
       />

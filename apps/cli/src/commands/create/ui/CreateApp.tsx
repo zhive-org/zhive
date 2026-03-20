@@ -59,13 +59,22 @@ export function CreateApp({ initialName }: CreateAppProps): React.ReactElement {
   const [timeframes, setTimeframes] = useState<string[]>([]);
   const [avatarUrl, setAvatarUrl] = useState('');
   const [soulContent, setSoulContent] = useState('');
+  const [soulDraft, setSoulDraft] = useState('');
   const [strategyContent, setStrategyContent] = useState('');
+  const [strategyDraft, setStrategyDraft] = useState('');
   const [resolvedProjectDir, setResolvedProjectDir] = useState('');
   const [error, setError] = useState('');
 
   const stepIndex = STEP_ORDER.indexOf(step);
 
   const provider: AIProvider | null = providerId ? getProvider(providerId) : null;
+
+  const goBack = useCallback(() => {
+    const currentIndex = STEP_ORDER.indexOf(step);
+    if (currentIndex > 0) {
+      setStep(STEP_ORDER[currentIndex - 1]!);
+    }
+  }, [step]);
 
   const handleApiKey = useCallback((result: ApiKeyResult) => {
     setProviderId(result.providerId);
@@ -95,13 +104,31 @@ export function CreateApp({ initialName }: CreateAppProps): React.ReactElement {
     setStep('api-key');
   }, []);
 
+  const goBackFromSoul = useCallback(
+    (draft?: string) => {
+      if (draft) setSoulDraft(draft);
+      goBack();
+    },
+    [goBack],
+  );
+
+  const goBackFromStrategy = useCallback(
+    (draft?: string) => {
+      if (draft) setStrategyDraft(draft);
+      goBack();
+    },
+    [goBack],
+  );
+
   const handleSoul = useCallback((content: string) => {
     setSoulContent(content);
+    setSoulDraft('');
     setStep('strategy');
   }, []);
 
   const handleStrategy = useCallback((content: string) => {
     setStrategyContent(content);
+    setStrategyDraft('');
     setStep('scaffold');
   }, []);
 
@@ -123,13 +150,37 @@ export function CreateApp({ initialName }: CreateAppProps): React.ReactElement {
       <Header />
       <StepIndicator steps={STEP_DEFS} currentIndex={stepIndex} />
 
-      {step === 'api-key' && <ApiKeyStep onComplete={handleApiKey} />}
+      {step === 'api-key' && (
+        <ApiKeyStep
+          initialResult={providerId && apiKey ? { providerId, apiKey } : undefined}
+          onBack={goBack}
+          onComplete={handleApiKey}
+        />
+      )}
 
-      {step === 'name' && <NameStep onComplete={handleName} />}
+      {step === 'name' && <NameStep defaultValue={agentName} onComplete={handleName} />}
 
-      {step === 'identity' && <IdentityStep agentName={agentName} onComplete={handleIdentity} />}
+      {step === 'identity' && (
+        <IdentityStep
+          agentName={agentName}
+          onBack={goBack}
+          initialValues={
+            bio
+              ? { personality, tone, voiceStyle, tradingStyle, sectors, sentiment, timeframes, bio }
+              : undefined
+          }
+          onComplete={handleIdentity}
+        />
+      )}
 
-      {step === 'avatar' && <AvatarStep agentName={agentName} onComplete={handleAvatar} />}
+      {step === 'avatar' && (
+        <AvatarStep
+          agentName={agentName}
+          defaultValue={avatarUrl}
+          onBack={goBack}
+          onComplete={handleAvatar}
+        />
+      )}
 
       {step === 'soul' && providerId && (
         <SoulStep
@@ -145,6 +196,8 @@ export function CreateApp({ initialName }: CreateAppProps): React.ReactElement {
           sectors={sectors}
           sentiment={sentiment}
           timeframes={timeframes}
+          initialContent={soulContent || soulDraft || undefined}
+          onBack={goBackFromSoul}
           onComplete={handleSoul}
         />
       )}
@@ -162,6 +215,8 @@ export function CreateApp({ initialName }: CreateAppProps): React.ReactElement {
           sectors={sectors}
           sentiment={sentiment}
           timeframes={timeframes}
+          initialContent={strategyContent || strategyDraft || undefined}
+          onBack={goBackFromStrategy}
           onComplete={handleStrategy}
         />
       )}

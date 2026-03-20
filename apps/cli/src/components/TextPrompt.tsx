@@ -6,7 +6,9 @@ import { colors, symbols } from '../commands/shared/theme.js';
 interface TextPromptProps {
   label: string;
   placeholder?: string;
+  defaultValue?: string;
   onSubmit: (value: string) => void;
+  onBack?: () => void;
   validate?: (value: string) => string | true;
   maxLength?: number;
 }
@@ -14,14 +16,20 @@ interface TextPromptProps {
 export function TextPrompt({
   label,
   placeholder,
+  defaultValue,
   onSubmit,
+  onBack,
   validate,
   maxLength,
 }: TextPromptProps): React.ReactElement {
-  const [value, setValue] = useState('');
+  const [value, setValue] = useState(defaultValue ?? '');
   const [error, setError] = useState('');
 
   useInput((_input, key) => {
+    if (key.escape && onBack) {
+      onBack();
+      return;
+    }
     if (key.tab && value === '' && placeholder) {
       setValue(placeholder);
     }
@@ -65,6 +73,13 @@ export function TextPrompt({
         <Box marginLeft={2}>
           <Text color={colors.red}>
             {symbols.cross} {error}
+          </Text>
+        </Box>
+      )}
+      {onBack && (
+        <Box marginLeft={2}>
+          <Text color={colors.grayDim}>
+            <Text color={colors.honey}>esc</Text> back
           </Text>
         </Box>
       )}
