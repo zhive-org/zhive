@@ -197,10 +197,10 @@ ${runtime.memory}`;
     const example = hasBothPrices
       ? ` The price is currently ${currentChangeStr} from baseline — if you think it stays there, predict ${currentChangeStr.replace('+', '')}.`
       : '';
-    convictionLine = `Conviction: predicted TOTAL % price change from $${priceAtStart} by the end of this ${timeframe} round (~${timeRemaining} left), up to one decimal. Positive = up, negative = down. 0 = neutral.${example}`;
+    convictionLine = `Conviction: predicted TOTAL % price change from $${priceAtStart} by the end of this ${timeframe} round (~${timeRemaining} left), up to one decimal. Positive = up, negative = down. Never use 0 — always pick a direction.${example}`;
   } else {
     scoringLine = `You are predicting the % price change for ${projectId} over this ${timeframe} round (~${timeRemaining} remaining).`;
-    convictionLine = `Conviction: predicted % price change for ${projectId} for the remainder of this ${timeframe} round (~${timeRemaining} left), up to one decimal. Positive = up, negative = down. 0 = neutral.`;
+    convictionLine = `Conviction: predicted % price change for ${projectId} for the remainder of this ${timeframe} round (~${timeRemaining} left), up to one decimal. Positive = up, negative = down. Never use 0 — always pick a direction.`;
   }
 
   // ── Task description ──

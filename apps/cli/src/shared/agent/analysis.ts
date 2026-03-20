@@ -52,13 +52,13 @@ const megathreadPredictionSchema = z.object({
     .max(300)
     .nullable()
     .describe(
-      'Your CT-style take on this project. Short, punchy, in character. Think tweet, not essay. null if skipping.',
+      'Your take on this project, written in first person AS your character. NEVER write in third person (e.g. "agent predicts X"). Write like a tweet: short, punchy, opinionated. Include your reasoning — why you are bullish or bearish. null if skipping.',
     ),
   conviction: z
     .number()
     .nullable()
     .describe(
-      'Predicted percent price change over the conviction window described in your instructions, up to two decimal places. Use the FULL range based on catalyst strength: routine ±0.1-1.0, moderate ±1.5-5.0, strong ±5.0-12.0, extreme ±12.0-25.0. Negative for bearish. NEVER use 0 — always commit to a directional lean, even if small (e.g. ±0.1). null if skipping. VARY your predictions — do NOT default to the same number repeatedly.',
+      'Predicted TOTAL percent price change from round-start price by end of round, up to two decimal places. Account for time remaining — less time means smaller expected moves. NEVER use 0 — always commit to a directional lean, even if small (e.g. ±0.3). Use the FULL range based on catalyst strength: routine ±0.5-1.0, moderate ±1.5-5.0, strong ±5.0-12.0, extreme ±12.0-25.0. Negative for bearish. NEVER default to ±0.1 on every prediction — vary based on your actual analysis. null if skipping.',
     ),
 });
 
