@@ -8,7 +8,13 @@ import { getAgentProviderKeys } from './env-loader.js';
 
 let _modelPromise: Promise<LanguageModel> | null = null;
 
-export type AIProviderId = 'openai' | 'anthropic' | 'google' | 'xai' | 'openrouter';
+export type AIProviderId =
+  | 'openai'
+  | 'anthropic'
+  | 'google'
+  | 'xai'
+  | 'openrouter-free'
+  | 'openrouter';
 
 export interface AIProviderModels {
   /** Cheapest model — just checks if the key works. */
@@ -36,14 +42,50 @@ export interface ModelInfo {
 
 export const AI_PROVIDERS: AIProvider[] = [
   {
+    id: 'openrouter-free',
+    label: 'OpenRouter (Free Model)',
+    package: '@openrouter/ai-sdk-provider',
+    envVar: 'OPENROUTER_API_KEY',
+    models: {
+      validation: 'arcee-ai/trinity-large-preview:free',
+      generation: 'arcee-ai/trinity-large-preview:free',
+      runtime: 'arcee-ai/trinity-large-preview:free',
+    },
+    load: async (modelId) => {
+      const { createOpenRouter } = await import('@openrouter/ai-sdk-provider');
+      const openrouter = createOpenRouter({
+        apiKey: process.env.OPENROUTER_API_KEY,
+      });
+      return openrouter.chat(modelId) as unknown as LanguageModel;
+    },
+  },
+  {
+    id: 'openrouter',
+    label: 'OpenRouter',
+    package: '@openrouter/ai-sdk-provider',
+    envVar: 'OPENROUTER_API_KEY',
+    models: {
+      validation: 'openai/gpt-5.4-nano',
+      generation: 'openai/gpt-5.4-nano',
+      runtime: 'openai/gpt-5.4-nano',
+    },
+    load: async (modelId) => {
+      const { createOpenRouter } = await import('@openrouter/ai-sdk-provider');
+      const openrouter = createOpenRouter({
+        apiKey: process.env.OPENROUTER_API_KEY,
+      });
+      return openrouter.chat(modelId) as unknown as LanguageModel;
+    },
+  },
+  {
     id: 'openai',
     label: 'OpenAI',
     package: '@ai-sdk/openai',
     envVar: 'OPENAI_API_KEY',
     models: {
-      validation: 'gpt-5-nano',
-      generation: 'gpt-5-mini',
-      runtime: 'gpt-5-mini',
+      validation: 'gpt-5.4-nano',
+      generation: 'gpt-5.4-nano',
+      runtime: 'gpt-5.4-nano',
     },
     load: async (modelId) => {
       const { openai } = await import('@ai-sdk/openai');
@@ -95,24 +137,6 @@ export const AI_PROVIDERS: AIProvider[] = [
       return xai(modelId);
     },
   },
-  {
-    id: 'openrouter',
-    label: 'OpenRouter',
-    package: '@openrouter/ai-sdk-provider',
-    envVar: 'OPENROUTER_API_KEY',
-    models: {
-      validation: 'openai/gpt-5-nano',
-      generation: 'openai/gpt-5-mini',
-      runtime: 'openai/gpt-5-mini',
-    },
-    load: async (modelId) => {
-      const { createOpenRouter } = await import('@openrouter/ai-sdk-provider');
-      const openrouter = createOpenRouter({
-        apiKey: process.env.OPENROUTER_API_KEY,
-      });
-      return openrouter.chat(modelId) as unknown as LanguageModel;
-    },
-  },
 ];
 
 /**
@@ -139,6 +163,7 @@ export function buildLanguageModel(
       return createGoogleGenerativeAI({ apiKey })(modelId);
     case 'xai':
       return createXai({ apiKey })(modelId);
+    case 'openrouter-free':
     case 'openrouter':
       return createOpenRouter({ apiKey }).chat(modelId) as unknown as LanguageModel;
   }

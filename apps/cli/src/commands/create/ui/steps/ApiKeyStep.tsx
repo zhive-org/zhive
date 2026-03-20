@@ -47,10 +47,22 @@ export function ApiKeyStep({ onComplete }: ApiKeyStepProps): React.ReactElement 
     void loadConfig();
   }, []);
 
+  const providerDescriptions: Record<string, string> = {
+    'openrouter-free':
+      'Uses arcee-ai/trinity-large-preview:free as default [FREE but still requires an API key]',
+    openrouter: 'Uses openai/gpt-5.4-nano as default',
+    openai: 'Uses gpt-5.4-nano as default',
+    anthropic: 'Uses claude-haiku-4-5 as default',
+    google: 'Uses gemini-3-flash-preview as default',
+    xai: 'Uses grok-4-1-fast-reasoning as default',
+  };
+
   const providerItems: SelectItem[] = AI_PROVIDERS.map((p) => ({
     label: p.label,
     value: p.id,
-    description: p.envVar,
+    description:
+      providerDescriptions[p.id] ??
+      `Uses ${p.models.runtime} (configurable via HIVE_MODEL in .env)`,
   }));
 
   const handleProviderSelect = (item: SelectItem): void => {
