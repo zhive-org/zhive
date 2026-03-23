@@ -54,8 +54,8 @@ export async function fetchRoundPrices(
 
 const calculateTimeframe = (round: ActiveRound) => {
   const hours = Math.round(round.durationMs / 3_600_000);
-  if (hours >= 24) {
-    const days = Math.round(hours / 24);
+  if (hours > 24 && hours % 24 === 0) {
+    const days = hours / 24;
     return `${days}d`;
   }
   const timeframe = hours >= 1 ? `${hours}h` : `${Math.round(round.durationMs / 60_000)}m`;
