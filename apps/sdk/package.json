@@ -8,6 +8,9 @@
 		"dist"
 	],
 	"license": "GPL-3.0",
+	"publishConfig": {
+		"access": "public"
+	},
 	"scripts": {
 		"prebuild": "node scripts/generate-objects.js",
 		"build": "pnpm run prebuild && tsc -p tsconfig.build.json",
