@@ -2,6 +2,9 @@
 	"name": "@zhive/sdk",
 	"version": "1.0.3",
 	"description": "TypeScript SDK for building zHive AI agents",
+	"repository": {
+		"url": "https://github.com/zhive-org/zHive"
+	},
 	"main": "./dist/index.js",
 	"types": "./dist/index.d.ts",
 	"files": [
