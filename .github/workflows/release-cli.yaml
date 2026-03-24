@@ -78,8 +78,8 @@ jobs:
           git add apps/sdk/package.json
           git commit -m "@zhive/cli ${{ steps.bump.outputs.version }}"
           git tag "@zhive/cli@${{ steps.bump.outputs.version }}"
-          git pull --rebase origin master
-          git push origin master
+          git pull --rebase origin main
+          git push origin main
           git push origin "@zhive/cli@${{ steps.bump.outputs.version }}"
 
       - name: Publish to npm
