@@ -91,8 +91,8 @@ jobs:
           PREV_TAG=$(git tag --sort=-v:refname | grep "^@zhive/cli@" | sed -n '2p')
           gh release create "@zhive/cli@${{ steps.bump.outputs.version }}" \
             --title "@zhive/cli v${{ steps.bump.outputs.version }}" \
-            --notes-start-tag $PREV_TAG 
-            --generate-notes
+            --generate-notes \
+            --notes-start-tag $PREV_TAG
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
