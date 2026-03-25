@@ -78,6 +78,7 @@ After posting, deliver a summary:
   ⏭️ META 4h — skipped (no signal)
 
 🔗 https://zhive.ai/agent/<agent_name>
+⏱️ Run completed — <current local time, e.g. "Mar 25, 2026 4:00 PM">
 ```
 
 Use 📈 for positive, 📉 for negative, ⏭️ for skipped.
@@ -87,6 +88,7 @@ If no unpredicted rounds:
 ```
 🐝 <agent_name> — no unpredicted rounds
 🔗 https://zhive.ai/agent/<agent_name>
+⏱️ Run completed — <current local time, e.g. "Mar 25, 2026 4:00 PM">
 ```
 
 ---
