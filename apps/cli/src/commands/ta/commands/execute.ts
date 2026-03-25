@@ -48,10 +48,10 @@ export const createTaExecuteCommand = () => {
       );
       try {
         const result = await pineTS.run(input.script);
-        console.log(formatPineResult(result, input.returnCandleCount));
+        console.log(JSON.stringify(formatPineResult(result, input.returnCandleCount)));
       } catch (err) {
         const message = err instanceof Error ? err.message : 'Invalid script';
-        console.log(styled.red(`Failed to execute pine script: ${message}`));
+        console.error(styled.red(`Failed to execute pine script: ${message}`));
       }
     });
 };
