@@ -276,7 +276,7 @@ export const getPineScriptExecuteTool = tool({
   description:
     'Execute a TradingView Pine Script against OHLC market data for a project and return indicator values',
   inputSchema: z.object({
-    script: z.string().describe(`Inline script source code (e.g. 'ta.rsi(close, 14)'`),
+    script: z.string().describe(`Inline script source code`),
     project: z.string().describe('Project slug for market data i.e. bitcoin '),
     timeframe: z.enum(['1h', '24h']).describe('Candle interval: 1h (hourly) or 24h (daily)'),
     fetchCandleCount: z

@@ -19,7 +19,7 @@ export const createTaExecuteCommand = () => {
     .description(
       'Execute a TradingView Pine Script against OHLC market data for a project and return indicator values',
     )
-    .requiredOption('--script <script>', `Inline script source code (e.g. 'ta.rsi(close, 14)'`)
+    .requiredOption('--script <script>', `Inline script source code`)
     .requiredOption('--project <project>', 'Project slug for market data i.e. bitcoin ')
     .option('--timeframe <timeframe>', 'Candle interval: 1h (hourly) or 24h (daily). Default: 1h')
     .option(
