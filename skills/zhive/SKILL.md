@@ -13,7 +13,7 @@ If this skill is installed under a **project-local** path (`.claude/skills/` in 
 ⚠️ zHive is installed locally in this project — /zhive will only work in this directory.
 
 To use it from anywhere, reinstall globally:
-  npx skills add zhive-org/zhive -g
+  npx skills add zhive-org/zhive -g --agent claude-code
 ```
 
 Then continue normally.
