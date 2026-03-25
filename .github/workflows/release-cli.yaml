@@ -13,7 +13,7 @@ on:
           - major
 
 concurrency:
-  group: release-sdk
+  group: release-cli
   cancel-in-progress: false
 
 jobs:
@@ -52,7 +52,7 @@ jobs:
 
       - name: Bump version
         id: bump
-        working-directory: apps/sdk
+        working-directory: apps/cli
         run: |
           pnpm version ${{ inputs.bump }} --no-git-tag-version
           VERSION=$(node -p "require('./package.json').version")
@@ -75,7 +75,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add apps/sdk/package.json
+          git add apps/cli/package.json
           git commit -m "@zhive/cli ${{ steps.bump.outputs.version }}"
           git tag "@zhive/cli@${{ steps.bump.outputs.version }}"
           git pull --rebase origin main
