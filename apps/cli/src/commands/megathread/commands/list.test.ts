@@ -2,6 +2,9 @@ import { describe, it, expect, vi, beforeEach, afterEach, Mock } from 'vitest';
 import { fileURLToPath } from 'node:url';
 import * as path from 'node:path';
 import type { ActiveRound } from '@zhive/sdk';
+import { type MockedConsole, createMockedConsole } from '../../../tests/console';
+import { HiveClient } from '@zhive/sdk';
+import { createMegathreadListCommand } from './list.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const FIXTURES_DIR = path.join(__dirname, '../../../../__fixtures__/mock-hive');
@@ -35,9 +38,6 @@ vi.mock('@zhive/sdk', async () => {
   };
 });
 
-import { HiveClient } from '@zhive/sdk';
-import { createMegathreadListCommand } from './list.js';
-
 const MockHiveClient = HiveClient as Mock;
 
 function createMockActiveRound(overrides: Partial<ActiveRound> = {}): ActiveRound {
@@ -47,29 +47,20 @@ function createMockActiveRound(overrides: Partial<ActiveRound> = {}): ActiveRoun
     durationMs: 14400000,
     snapTimeMs: Date.now(),
     priceAtStart: null,
+    currentPrice: null,
     ...overrides,
   };
 }
 
 describe('createMegathreadListCommand', () => {
-  let consoleLogSpy: ReturnType<typeof vi.spyOn>;
-  let consoleErrorSpy: ReturnType<typeof vi.spyOn>;
+  let mockedConsole: MockedConsole;
   let processExitSpy: ReturnType<typeof vi.spyOn>;
-  let consoleOutput: string[];
-  let consoleErrorOutput: string[];
   let mockGetUnpredictedRounds: Mock;
 
   beforeEach(() => {
     vi.clearAllMocks();
-    consoleOutput = [];
-    consoleErrorOutput = [];
+    mockedConsole = createMockedConsole();
 
-    consoleLogSpy = vi.spyOn(console, 'log').mockImplementation((...args: unknown[]) => {
-      consoleOutput.push(args.join(' '));
-    });
-    consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation((...args: unknown[]) => {
-      consoleErrorOutput.push(args.join(' '));
-    });
     processExitSpy = vi
       .spyOn(process, 'exit')
       .mockImplementation((code?: string | number | null | undefined) => {
@@ -83,8 +74,8 @@ describe('createMegathreadListCommand', () => {
   });
 
   afterEach(() => {
-    consoleLogSpy.mockRestore();
-    consoleErrorSpy.mockRestore();
+    mockedConsole.mockRestore();
+
     processExitSpy.mockRestore();
   });
 
@@ -96,7 +87,7 @@ describe('createMegathreadListCommand', () => {
         command.parseAsync(['--agent', 'test-agent', '--timeframe', '2h'], { from: 'user' }),
       ).rejects.toThrow('process.exit(1)');
 
-      expect(consoleErrorOutput.length).toBeGreaterThan(0);
+      expect(mockedConsole.err.length).toBeGreaterThan(0);
     });
 
     it('shows error for multiple invalid timeframes', async () => {
@@ -106,7 +97,7 @@ describe('createMegathreadListCommand', () => {
         command.parseAsync(['--agent', 'test-agent', '--timeframe', '2h,5h'], { from: 'user' }),
       ).rejects.toThrow('process.exit(1)');
 
-      expect(consoleErrorOutput.length).toBeGreaterThan(0);
+      expect(mockedConsole.err.length).toBeGreaterThan(0);
     });
 
     it('accepts valid timeframe values', async () => {
@@ -147,11 +138,11 @@ describe('createMegathreadListCommand', () => {
         command.parseAsync(['--agent', 'non-existent'], { from: 'user' }),
       ).rejects.toThrow('process.exit(1)');
 
-      expect(consoleErrorOutput.join('\n')).toContain('Agent "non-existent" not found');
-      expect(consoleErrorOutput.join('\n')).toContain('Available agents:');
-      expect(consoleErrorOutput.join('\n')).toContain('test-agent');
-      expect(consoleErrorOutput.join('\n')).toContain('empty-agent');
-      expect(consoleErrorOutput.join('\n')).toContain('agent-no-skills');
+      expect(mockedConsole.err.join('\n')).toContain('Agent "non-existent" not found');
+      expect(mockedConsole.err.join('\n')).toContain('Available agents:');
+      expect(mockedConsole.err.join('\n')).toContain('test-agent');
+      expect(mockedConsole.err.join('\n')).toContain('empty-agent');
+      expect(mockedConsole.err.join('\n')).toContain('agent-no-skills');
     });
   });
 
@@ -163,7 +154,7 @@ describe('createMegathreadListCommand', () => {
         command.parseAsync(['--agent', 'no-cred-agent'], { from: 'user' }),
       ).rejects.toThrow('process.exit(1)');
 
-      expect(consoleErrorOutput.join('\n')).toContain('Agent "no-cred-agent" not found');
+      expect(mockedConsole.err.join('\n')).toContain('Agent "no-cred-agent" not found');
     });
   });
 
@@ -174,7 +165,7 @@ describe('createMegathreadListCommand', () => {
       const command = createMegathreadListCommand();
       await command.parseAsync(['--agent', 'test-agent'], { from: 'user' });
 
-      const output = consoleOutput.join('\n');
+      const output = mockedConsole.output.join('\n');
       expect(output).toContain('Unpredicted Rounds for test-agent');
       expect(output).toContain('No unpredicted rounds available');
     });
@@ -190,7 +181,7 @@ describe('createMegathreadListCommand', () => {
       const command = createMegathreadListCommand();
       await command.parseAsync(['--agent', 'test-agent'], { from: 'user' });
 
-      const output = consoleOutput.join('\n');
+      const output = mockedConsole.output.join('\n');
       expect(output).toContain('Unpredicted Rounds for test-agent');
       expect(output).toContain('Round ID');
       expect(output).toContain('Token');
@@ -212,7 +203,7 @@ describe('createMegathreadListCommand', () => {
       const command = createMegathreadListCommand();
       await command.parseAsync(['--agent', 'test-agent'], { from: 'user' });
 
-      const output = consoleOutput.join('\n');
+      const output = mockedConsole.output.join('\n');
       expect(output).toContain('7200000ms');
     });
   });
@@ -227,8 +218,8 @@ describe('createMegathreadListCommand', () => {
         'process.exit(1)',
       );
 
-      expect(consoleErrorOutput.join('\n')).toContain('Failed to fetch unpredicted rounds');
-      expect(consoleErrorOutput.join('\n')).toContain('Network error');
+      expect(mockedConsole.err.join('\n')).toContain('Failed to fetch unpredicted rounds');
+      expect(mockedConsole.err.join('\n')).toContain('Network error');
     });
 
     it('handles non-Error exceptions', async () => {
@@ -240,8 +231,8 @@ describe('createMegathreadListCommand', () => {
         'process.exit(1)',
       );
 
-      expect(consoleErrorOutput.join('\n')).toContain('Failed to fetch unpredicted rounds');
-      expect(consoleErrorOutput.join('\n')).toContain('String error');
+      expect(mockedConsole.err.join('\n')).toContain('Failed to fetch unpredicted rounds');
+      expect(mockedConsole.err.join('\n')).toContain('String error');
     });
   });
 
@@ -252,7 +243,7 @@ describe('createMegathreadListCommand', () => {
       const command = createMegathreadListCommand();
       await command.parseAsync(['--agent', 'empty-agent'], { from: 'user' });
 
-      const output = consoleOutput.join('\n');
+      const output = mockedConsole.output.join('\n');
       expect(output).toContain('Unpredicted Rounds for empty-agent');
     });
   });
