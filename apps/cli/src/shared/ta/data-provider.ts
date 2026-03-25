@@ -13,6 +13,9 @@ const TIMEFRAME_TO_INTERVAL: Record<string, string> = {
   '1d': 'daily',
 };
 
+/**
+ * The Hive API is only able to provide OHLC data; the rest is mocked.
+ */
 export class HiveDataProvider implements IProvider {
   constructor(private _client: HiveClient) {}
 
