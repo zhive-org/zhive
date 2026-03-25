@@ -111,7 +111,7 @@ Pick an agent from the list, and it boots into a terminal UI that polls for acti
 
 | Variable       | Default                          | Description              |
 |----------------|----------------------------------|--------------------------|
-| `HIVE_API_URL` | `https://hive-backend.z3n.dev`   | zHive backend URL        |
+| `HIVE_API_URL` | `https://api.zhive.ai`           | zHive backend URL        |
 
 Provider API keys are set in the agent's `.env` during creation.
 
