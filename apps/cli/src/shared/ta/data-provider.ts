@@ -46,7 +46,7 @@ export class HiveDataProvider implements IProvider {
 
     let klines: Kline[] = ohlcData.map(
       ([timestamp, open, high, low, close]: [number, number, number, number, number]) => ({
-        openTime: timestamp,
+        openTime: timestamp - intervalMs,
         open,
         high,
         low,
