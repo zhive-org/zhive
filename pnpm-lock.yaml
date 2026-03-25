@@ -39,8 +39,8 @@ importers:
         specifier: ^2.3.3
         version: 2.3.3(ai@6.0.73(zod@4.3.6))(zod@4.3.6)
       '@zhive/sdk':
-        specifier: ^1.0.1
-        version: 1.0.1
+        specifier: ^1.0.4
+        version: 1.0.4
       ai:
         specifier: ^6.0.71
         version: 6.0.73(zod@4.3.6)
@@ -77,6 +77,9 @@ importers:
       lodash:
         specifier: ^4.17.23
         version: 4.17.23
+      pinets:
+        specifier: ^0.9.7
+        version: 0.9.7
       react:
         specifier: ^18.3.1
         version: 18.3.1
@@ -886,8 +889,8 @@ packages:
   '@vitest/utils@3.2.4':
     resolution: {integrity: sha512-fB2V0JFrQSMsCo9HiSq3Ezpdv4iYaXRG1Sx8edX3MwxfyNn83mKiGzOcH+Fkxt4MHxr3y42fQi1oeAInqgX2QA==}
 
-  '@zhive/sdk@1.0.1':
-    resolution: {integrity: sha512-oMeMVnruCY8X1YVRPQCJwTrmqJTYuJDVMtPSr1uWPQ4X5yvrQ/jnK70BjLcm6bDzUOdiCyW/JrTC0rTaKvVAzg==}
+  '@zhive/sdk@1.0.4':
+    resolution: {integrity: sha512-jbm/IQ89sj+TkneIt7cNpHcn9RB9kbTdSkkJJJg11hVIqjG2Kk5rXeuKKinmJ5217A7/i3AZan/YT6cHC6MBWw==}
 
   acorn-jsx@5.3.2:
     resolution: {integrity: sha512-rq9s+JNhf0IChjtDXxllJ7g41oZk5SlXtp0LHwyA5cejwn7vKmKp4pPri6YEePv2PU65sAsegbXtIinmDFDXgQ==}
@@ -949,6 +952,10 @@ packages:
   assertion-error@2.0.1:
     resolution: {integrity: sha512-Izi8RQcffqCeNVgFigKli1ssklIbpHnCYc6AknXGYoB6grJqyeby7jv12JUQgmTAnIDnbck1uxksT4dzN3PWBA==}
     engines: {node: '>=12'}
+
+  astring@1.9.0:
+    resolution: {integrity: sha512-LElXdjswlqjWrPpJFg1Fx4wpkOCxj1TDHlSV4PlaRxHGWko024xICaa97ZkMfs6DRKlCguiAI+rbXv5GWwXIkg==}
+    hasBin: true
 
   asynckit@0.4.0:
     resolution: {integrity: sha512-Oei9OH4tRh0YqU3GxhX79dM/mwVgvbZJaSNaRk+bshkj0S5cfHcgYakreBjrHwatXKbz+IoIdYLxrKim2MjW0Q==}
@@ -1716,6 +1723,9 @@ packages:
   picomatch@4.0.3:
     resolution: {integrity: sha512-5gTmgEY/sqK6gFXLIsQNH19lWb4ebPDLA4SdLP7dsWkIXHWlG66oPuVvXSGFPppYZz8ZDZq0dYYrbHfBCVUb1Q==}
     engines: {node: '>=12'}
+
+  pinets@0.9.7:
+    resolution: {integrity: sha512-hgqSmHdz7Ss99Fy3kgiin2L6g8Z/E6bZihCC7jKCdNPJHyDfrJcZwIzLV6C1WkkyjidOJVu2h/aQjmQlwFKGgA==}
 
   pkg-types@1.3.1:
     resolution: {integrity: sha512-/Jm5M4RvtBFVkKWRu2BLUTNP8/M2a+UwuAX+ae4770q1qVGtfjG+WTCupoZixokjmHiry8uI+dlY8KXYV5HVVQ==}
@@ -2848,7 +2858,7 @@ snapshots:
       loupe: 3.2.1
       tinyrainbow: 2.0.0
 
-  '@zhive/sdk@1.0.1':
+  '@zhive/sdk@1.0.4':
     dependencies:
       axios: 1.13.4
       lodash: 4.17.23
@@ -2903,6 +2913,8 @@ snapshots:
   assertion-error@1.1.0: {}
 
   assertion-error@2.0.1: {}
+
+  astring@1.9.0: {}
 
   asynckit@0.4.0: {}
 
@@ -3675,6 +3687,12 @@ snapshots:
   picomatch@2.3.1: {}
 
   picomatch@4.0.3: {}
+
+  pinets@0.9.7:
+    dependencies:
+      acorn: 8.15.0
+      acorn-walk: 8.3.4
+      astring: 1.9.0
 
   pkg-types@1.3.1:
     dependencies:

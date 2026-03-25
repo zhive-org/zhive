@@ -12,6 +12,7 @@ import {
   type SubagentConfig,
   type ExecuteSkillToolConfig,
 } from './execute-skill-tool.js';
+import { experimentalMarketTools } from './market/tools.js';
 
 export type { SkillDefinition, SkillMetadata } from '../skills/types.js';
 export type { SubagentUsage, SubagentConfig, ExecuteSkillToolConfig };
@@ -25,7 +26,9 @@ export { clearSubagentUsage, getSubagentUsage };
 export function getAllTools(): Record<string, Tool> {
   const tools: Record<string, Tool> = {};
 
-  for (const [name, tool] of Object.entries(marketTools)) {
+  const selectedMarketTool =
+    process.env.EXPERIMENTAL_MARKET_TOOLS === 'true' ? experimentalMarketTools : marketTools;
+  for (const [name, tool] of Object.entries(selectedMarketTool)) {
     const namespacedName = `market_${name}`;
     tools[namespacedName] = tool;
   }
