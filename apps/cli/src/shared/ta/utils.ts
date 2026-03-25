@@ -1,5 +1,17 @@
 import type { MarketInterval } from '@zhive/sdk';
 
+export interface PineResult {
+  plots: Record<string, { data: Array<{ value: number | boolean | null }> }>;
+  marketData: {
+    openTime: number;
+    open: number;
+    close: number;
+    closeTime: number;
+    high: number;
+    low: number;
+  }[];
+}
+
 /**
  * Adjusts the 'from' date backwards to ensure sufficient data points are fetched
  * for indicator calculation. Adds a 30% buffer for weekends/gaps in data.
@@ -20,4 +32,17 @@ export function adjustFromDate(
   }
 
   return fromDate.toISOString();
+}
+
+export function formatPineResult({ plots, marketData }: PineResult, returnedCandleCount: number) {
+  // Determine slice window: only return the most-recent return_candle_count candles
+  const startIdx = Math.max(0, marketData.length - returnedCandleCount);
+
+  // Extract plot data in a serializable format (sliced to return window)
+  const plotData: Record<string, Array<number | boolean | null>> = {};
+  for (const [plotName, plot] of Object.entries(plots)) {
+    plotData[plotName] = plot.data.slice(startIdx).map((d) => d.value);
+  }
+
+  return plotData;
 }

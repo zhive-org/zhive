@@ -1,3 +1,4 @@
+import type { MarketInterval } from '@zhive/sdk';
 import { tool } from 'ai';
 import { z } from 'zod';
 import { InsufficientDataError } from '../../../ta/error.js';
@@ -6,18 +7,19 @@ import {
   getEMA,
   getMACD,
   getOHLC,
-  getPrice,
   getRSI,
   getSMA,
 } from '../../../ta/service.js';
-import type { MarketInterval } from '@zhive/sdk';
+import { formatToolError } from '../../utils.js';
 import {
   formatBollingerData,
   formatIndicatorData,
   formatMACDData,
   formatOhlcData,
 } from './utils.js';
-import { formatToolError } from '../../utils.js';
+import { getHiveClient } from '../../../config/hive-client.js';
+import { HiveDataProvider } from '../../../ta/data-provider.js';
+import { formatPineResult, PineResult } from '../../../ta/utils.js';
 
 const timeRangeSchema = z.object({
   from: z
@@ -270,6 +272,45 @@ export const getBollingerTool = tool({
   },
 });
 
+export const getPineScriptExecuteTool = tool({
+  description:
+    'Execute a TradingView Pine Script against OHLC market data for a project and return indicator values',
+  inputSchema: z.object({
+    script: z.string().describe(`Inline script source code (e.g. 'ta.rsi(close, 14)'`),
+    project: z.string().describe('Project slug for market data i.e. bitcoin '),
+    timeframe: z.enum(['1h', '24h']).describe('Candle interval: 1h (hourly) or 24h (daily)'),
+    fetchCandleCount: z
+      .number()
+      .int()
+      .min(1)
+      .max(1500)
+      .default(100)
+      .describe(
+        'Number of historical candles to fetch. Indicators need lookback data, so set this higher than the indicator period (e.g. 200 for RSI 50). Default: 100',
+      ),
+    returnedCandleCount: z.coerce
+      .number()
+      .int()
+      .min(1)
+      .max(100)
+      .default(10)
+      .describe('Number of most-recent candles to include in the response (default: 10)'),
+  }),
+  execute: async ({ script, project, timeframe, returnedCandleCount, fetchCandleCount }) => {
+    const hive = getHiveClient();
+    const { PineTS } = await import('pinets');
+
+    const pineTS = new PineTS(new HiveDataProvider(hive), project, timeframe, fetchCandleCount);
+
+    try {
+      const result = (await pineTS.run(script)) as PineResult;
+      return formatPineResult(result, returnedCandleCount);
+    } catch (e) {
+      return formatToolError(e, 'Executing pine script');
+    }
+  },
+});
+
 /**
  * All market tools for export.
  */
@@ -280,4 +321,8 @@ export const marketTools = {
   getRSI: getRSITool,
   getMACD: getMACDTool,
   getBollinger: getBollingerTool,
+};
+
+export const experimentalMarketTools = {
+  executePineScript: getPineScriptExecuteTool,
 };

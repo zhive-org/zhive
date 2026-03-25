@@ -12,6 +12,7 @@ import { createMigrateTemplatesCommand } from './commands/migrate-templates/comm
 import { createDoctorCommand } from './commands/doctor/commands/index.js';
 import { createIndicatorCommand } from './commands/indicator/commands/index.js';
 import { createMarketCommand } from './commands/market/commands/index.js';
+import { createTACommand } from './commands/ta/commands/index.js';
 
 const require = createRequire(import.meta.url);
 const packageJson = require('../package.json') as { version: string };
@@ -31,6 +32,7 @@ program.addCommand(createMigrateTemplatesCommand());
 program.addCommand(createDoctorCommand());
 program.addCommand(createIndicatorCommand());
 program.addCommand(createMarketCommand());
+program.addCommand(createTACommand());
 
 // Show help with exit code 0 when no arguments provided
 const args = process.argv.slice(2);
