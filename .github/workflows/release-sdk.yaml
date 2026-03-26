@@ -75,7 +75,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add apps/sdk/package.json
+          git add apps/sdk/package.json apps/sdk/src/objects.ts
           git commit -m "@zhive/sdk ${{ steps.bump.outputs.version }}"
           git tag "@zhive/sdk@${{ steps.bump.outputs.version }}"
           git pull --rebase origin main
