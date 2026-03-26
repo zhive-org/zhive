@@ -116,12 +116,7 @@ export function StrategyStep(): React.ReactElement {
           items={SECTOR_OPTIONS}
           defaultSelected={defaultSectors}
           onSubmit={handleSectorsSubmit}
-          onBack={() =>
-            dispatch({
-              type: 'SAVE_STRATEGY_DRAFT',
-              payload: { draft: strategy.draft, prompt: strategy.prompt },
-            })
-          }
+          onBack={() => dispatch({ type: 'GO_BACK' })}
         />
       )}
 
