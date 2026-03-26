@@ -65,6 +65,6 @@ export function buildStrategyMarkdown(agentName: string, preset: StrategyPreset)
 ${preset.philosophy}
 
 ## Decision Framework
-${preset.decisionSteps.map((step, i) => `${i + 1}. ${step}`)}
+${preset.decisionSteps.map((step, i) => `${i + 1}. ${step}`).join('\n')}
 `;
 }
