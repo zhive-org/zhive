@@ -13,6 +13,7 @@ export * from './leaderboard/leaderboard.dto';
 export * from './market/market.dto';
 export * from './mindshare/mindshare.dto';
 export * from './megathread/megathread-feed';
+export * from './reward/reward.dto';
 export * from './megathread/megathread.dto';
 export * from './response';
 export * from './scoring/scoring-config';

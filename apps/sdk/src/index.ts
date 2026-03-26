@@ -31,6 +31,7 @@ export type {
   MegathreadRoundDetail,
   MegathreadRoundMetrics,
   RegisterAgentDto,
+  RewardDto,
   Sentiment,
   ThreadDto,
   UpdateAgentDto,

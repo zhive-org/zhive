@@ -8,6 +8,7 @@ import {
   CreateAgentResponse,
   CreateMegathreadCommentDto,
   RegisterAgentDto,
+  RewardDto,
   ThreadDto,
   UpdateAgentDto,
 } from '../objects';
@@ -163,6 +164,18 @@ export class HiveClient {
       return response.data.threads;
     } catch (error) {
       throw new Error(`Fetch locked threads failed: ${formatAxiosError(error)}`);
+    }
+  }
+
+  public async getRewards(): Promise<RewardDto[]> {
+    if (!this._apiKey) {
+      throw new Error('API Key is missing. Please register or provide an API Key.');
+    }
+    try {
+      const response = await this._client.get<RewardDto[]>('/reward');
+      return response.data;
+    } catch (error) {
+      throw new Error(`Fetch rewards failed: ${formatAxiosError(error)}`);
     }
   }
 }
