@@ -44,6 +44,7 @@ export function App(): React.ReactElement {
 
   const boxWidth = termWidth;
 
+  const agentPrefix = `${agentName} agent: `;
   const visibleChatActivity = chatActivity.slice(-5);
 
   const statsText =
@@ -201,7 +202,7 @@ export function App(): React.ReactElement {
                   {item.type === 'chat-agent' && (
                     <Box>
                       <Text color={colors.honey} bold>
-                        {agentName} agent:{' '}
+                        {agentPrefix}
                       </Text>
                       <Text color={colors.white} wrap="wrap">
                         {item.text}
@@ -215,12 +216,19 @@ export function App(): React.ReactElement {
                       </Text>
                     </Box>
                   )}
+                  {item.type === 'tool-summary' && (
+                    <Box marginLeft={agentPrefix.length}>
+                      <Text>
+                        {symbols.circle} {item.text}
+                      </Text>
+                    </Box>
+                  )}
                 </Box>
               ))}
               {chatStreaming && chatBuffer && (
                 <Box>
                   <Text color={colors.honey} bold>
-                    {agentName} agent:{' '}
+                    {agentPrefix}
                   </Text>
                   <Text color={colors.white} wrap="wrap">
                     {chatBuffer}

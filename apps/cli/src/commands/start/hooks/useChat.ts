@@ -1,18 +1,18 @@
 import * as ai from 'ai';
-import { type SystemModelMessage, type Tool } from 'ai';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { type SystemModelMessage } from 'ai';
+import { wrapAISDK } from 'langsmith/experimental/vercel';
+import { useCallback, useRef, useState } from 'react';
 import { extractAndSaveMemory } from '../../../shared/agent/analysis.js';
 import { buildChatPrompt, type ChatMessage } from '../../../shared/agent/prompts/chat-prompt.js';
 import { editSectionTool } from '../../../shared/agent/tools/edit-section.js';
 import { fetchRulesTool } from '../../../shared/agent/tools/fetch-rules.js';
 import { extractErrorMessage } from '../../../shared/agent/utils.js';
-import { loadAgentConfig } from '../../../shared/config/agent.js';
 import { getModel } from '../../../shared/config/ai-providers.js';
+import { styled } from '../../shared/theme.js';
 import { predictionSlashCommand } from '../commands/prediction.js';
 import { skillsSlashCommand } from '../commands/skills.js';
 import { SLASH_COMMANDS } from '../services/command-registry.js';
 import { ChatActivityItem } from './types.js';
-import { wrapAISDK } from 'langsmith/experimental/vercel';
 import { useAgentRuntime } from './useAgentRuntime.js';
 
 const { ToolLoopAgent } = wrapAISDK(ai);
@@ -200,53 +200,51 @@ export function useChat(): UseChatState & UseChatActions {
           },
         });
 
-        let fullResponse = '';
         let lastFlushTime = 0;
         const THROTTLE_MS = 80;
-        const streamErrors: string[] = [];
 
+        let response = '';
         for await (const part of result.fullStream) {
-          if (part.type === 'text-delta') {
-            fullResponse += part.text;
-            const now = Date.now();
-            if (now - lastFlushTime >= THROTTLE_MS) {
-              setChatBuffer(fullResponse);
-              lastFlushTime = now;
+          switch (part.type) {
+            case 'text-delta': {
+              response += part.text;
+              setChatBuffer(response);
+              const now = Date.now();
+              if (now - lastFlushTime >= THROTTLE_MS) {
+                setChatBuffer(response);
+                lastFlushTime = now;
+              }
+              break;
             }
-          } else if (part.type === 'error') {
-            const errMsg = typeof part.error === 'string' ? part.error : String(part.error);
-            streamErrors.push(errMsg);
-          }
-        }
-        // Always flush the final value
-        setChatBuffer(fullResponse);
-
-        // Surface tool results when the model didn't produce follow-up text
-        const steps = await result.steps;
-        for (const step of steps) {
-          for (const toolResult of step.toolResults) {
-            const output = String(toolResult.output);
-            if (!fullResponse.includes(output)) {
-              const suffix = `\n[${output}]`;
-              fullResponse += suffix;
-              setChatBuffer(fullResponse);
+            case 'text-end': {
+              sessionMessagesRef.current.push({ role: 'assistant', content: response });
+              addChatActivity({ type: 'chat-agent', text: response });
+              setChatBuffer('');
+              response = '';
+              break;
+            }
+            case 'error': {
+              const errMsg = typeof part.error === 'string' ? part.error : String(part.error);
+              addChatActivity({ type: 'chat-error', text: errMsg });
+              break;
             }
           }
         }
-
-        if (fullResponse.trim().length === 0) {
-          const errorText =
-            streamErrors.length > 0
-              ? `Chat error: ${streamErrors.join('; ').slice(0, 120)}`
-              : 'No response generated. Try again or rephrase.';
-          addChatActivity({ type: 'chat-error', text: errorText });
-          setChatBuffer('');
-          return;
-        }
-
-        sessionMessagesRef.current.push({ role: 'assistant', content: fullResponse });
-        addChatActivity({ type: 'chat-agent', text: fullResponse });
+        // cleanup any pending buffer
         setChatBuffer('');
+
+        const steps = await result.steps;
+        let toolUsed = 0;
+        let tokenUsedByTool = 0;
+        for (const step of steps) {
+          toolUsed += step.toolResults.length;
+          tokenUsedByTool += step.usage.totalTokens ?? 0;
+        }
+
+        if (toolUsed > 0) {
+          const toolMessage = `${styled.gray(`Done (${toolUsed}) tool uses · ${tokenUsedByTool} tokens`)}`;
+          addChatActivity({ type: 'tool-summary', text: toolMessage });
+        }
       } catch (err) {
         const raw = extractErrorMessage(err);
         addChatActivity({ type: 'chat-error', text: `Chat error: ${raw.slice(0, 120)}` });
