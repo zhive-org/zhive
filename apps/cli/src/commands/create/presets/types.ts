@@ -13,12 +13,6 @@ export interface SoulPreset {
 export interface StrategyPreset {
   name: string;
   philosophy: string;
-  signalMethod: string;
-  primaryIndicators: string;
-  sectors: string[];
-  sentiment: string;
-  timeframes: string[];
-  sectorAvoid: string;
   decisionSteps: string[];
 }
 
