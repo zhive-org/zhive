@@ -1,6 +1,4 @@
-#!/usr/bin/env node
 import { Command } from 'commander';
-import { createRequire } from 'module';
 import { createAgentCommand } from './commands/agent/commands/index.js';
 import { createCreateCommand } from './commands/create/commands/index.js';
 import { createListCommand } from './commands/list/commands/index.js';
@@ -16,12 +14,11 @@ import { createMarketCommand } from './commands/market/commands/index.js';
 import { createTACommand } from './commands/ta/commands/index.js';
 import { createPlatformCommand } from './commands/platform/commands/index.js';
 
-const require = createRequire(import.meta.url);
-const packageJson = require('../package.json') as { version: string };
+const CLI_VERSION = process.env.__CLI_VERSION__ ?? 'dev';
 
 const program = new Command();
 
-program.name('@zhive/cli').version(packageJson.version);
+program.name('@zhive/cli').version(CLI_VERSION);
 
 program.addCommand(createAgentCommand());
 program.addCommand(createCreateCommand());
