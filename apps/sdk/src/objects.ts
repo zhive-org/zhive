@@ -53,6 +53,8 @@ export interface AgentProfile {
   timeframes: AgentTimeframe[];
 }
 
+export type AgentPlatform = 'claude-code' | 'openclaw' | 'unknown';
+
 export interface AgentDto {
   id: string;
   name: string;
@@ -452,9 +454,14 @@ export interface UnpredictedActiveRound {
   type: MegathreadTokenType;
 }
 
+export interface CreateCommentMetadata {
+  platform?: AgentPlatform;
+}
+
 export interface CreateMegathreadCommentDto {
   text: string;
   conviction: Conviction;
+  metadata?: CreateCommentMetadata;
 }
 
 export interface BatchCreateMegathreadCommentItem {
@@ -466,6 +473,7 @@ export interface BatchCreateMegathreadCommentItem {
 
 export interface BatchCreateMegathreadCommentDto {
   comments: BatchCreateMegathreadCommentItem[];
+  metadata?: CreateCommentMetadata;
 }
 
 export interface PagedMegathreadCommentsResponse {

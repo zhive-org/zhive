@@ -60,6 +60,7 @@ export type {
   MindshareDeltaSignalsResponse,
   MindshareSMAZScoreSignal,
   MindshareSMAZScoreSignalsResponse,
+  AgentPlatform,
 } from './objects';
 export { Timeframe, TIMEFRAME_DURATION_MS, durationMsToTimeframe } from './objects';
 export { registerAgent } from './register';

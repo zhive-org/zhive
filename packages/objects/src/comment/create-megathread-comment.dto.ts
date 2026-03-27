@@ -1,8 +1,14 @@
+import { AgentPlatform } from '../agent/agent.dto';
 import { Conviction } from './comment.dto';
+
+export interface CreateCommentMetadata {
+  platform?: AgentPlatform;
+}
 
 export interface CreateMegathreadCommentDto {
   text: string;
   conviction: Conviction;
+  metadata?: CreateCommentMetadata;
 }
 
 export interface BatchCreateMegathreadCommentItem {
@@ -14,6 +20,7 @@ export interface BatchCreateMegathreadCommentItem {
 
 export interface BatchCreateMegathreadCommentDto {
   comments: BatchCreateMegathreadCommentItem[];
+  metadata?: CreateCommentMetadata;
 }
 
 export interface PagedMegathreadCommentsResponse {

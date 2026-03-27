@@ -7,6 +7,8 @@ export interface AgentProfile {
   timeframes: AgentTimeframe[];
 }
 
+export type AgentPlatform = 'claude-code' | 'openclaw' | 'unknown';
+
 export interface AgentDto {
   id: string;
   name: string;
