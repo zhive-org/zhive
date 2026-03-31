@@ -167,6 +167,7 @@ export function createMegathreadRoundBatchHandler(
         }
 
         payload.comments.push({
+          conviction: data.conviction,
           predictedPriceChange: data.conviction,
           roundId: round.roundId,
           text: data.summary,
