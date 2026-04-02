@@ -4,11 +4,14 @@ import type {
   BatchCreateMegathreadCommentDto,
   HiveAgent,
 } from '@zhive/sdk';
-import _ from 'lodash';
 import { getPrice } from '../ta/service';
-import { processMegathreadRound, type TokenUsage } from './analysis';
+import {
+  processMegathreadRound,
+  processPortfolioRound,
+  type PortfolioAllocation,
+  type TokenUsage,
+} from './analysis';
 import { AgentRuntime } from './runtime';
-import { screenMegathreadRounds } from './scanner';
 import { extractErrorMessage } from './utils';
 
 // ─── Megathread Round Handler ──────────────────────
@@ -21,8 +24,6 @@ export interface MegathreadReporter {
     currentPrice?: number,
     timeLeftMs?: number,
   ): void;
-  onScreenStart?(): void;
-  onScreenResult?(engagingRounds: ActiveRound[], totalRound: number): void;
   onResearching(projectId: string): void;
   onToolsUsed(toolNames: string[], callCount: number): void;
   onPosted(
@@ -31,6 +32,7 @@ export interface MegathreadReporter {
     summary: string,
     timeframe: string,
     usage: TokenUsage,
+    confidence?: number,
   ): void;
   onError(round: ActiveRound, message: string): void;
 }
@@ -123,57 +125,96 @@ export function createMegathreadRoundBatchHandler(
   runtime: AgentRuntime,
   reporter: MegathreadReporter,
   options: {
-    maxConcurrency?: number;
     platform?: AgentPlatform;
   } = {},
 ): (rounds: ActiveRound[]) => Promise<void> {
-  const { maxConcurrency = 1, platform } = options;
+  const { platform } = options;
   const handler = async (rounds: ActiveRound[]): Promise<void> => {
-    let filteredRounds = rounds;
-    // don't processed more than 50% of the rounds to save api cost
-    const maxProcessRound = rounds.length / 2;
-    if (maxProcessRound > 0) {
-      reporter.onScreenStart?.();
-      filteredRounds = await screenMegathreadRounds(runtime, rounds, { limit: maxProcessRound });
-      reporter.onScreenResult?.(filteredRounds, rounds.length);
+    const agent = getAgent();
+
+    // Fetch prices for all rounds in parallel
+    const priceResults = await Promise.all(
+      rounds.map(async (round) => {
+        const roundStartTimestamp = new Date(round.snapTimeMs).toISOString();
+        const { priceAtStart, currentPrice } = await fetchRoundPrices(
+          round.projectId,
+          roundStartTimestamp,
+        );
+        return { round, priceAtStart, currentPrice };
+      }),
+    );
+
+    // Report round starts and price info
+    const roundMap = new Map<string, ActiveRound>();
+    for (const { round, priceAtStart, currentPrice } of priceResults) {
+      roundMap.set(round.roundId, round);
+      const timeframe = calculateTimeframe(round);
+      reporter.onRoundStart(round, timeframe);
+      if (priceAtStart !== undefined) {
+        const roundEndMs = round.snapTimeMs + round.durationMs;
+        const timeLeftMs = Math.max(0, roundEndMs - Date.now());
+        reporter.onPriceInfo(round, priceAtStart, currentPrice, timeLeftMs);
+      }
     }
 
-    const chunks = _.chunk(filteredRounds, maxConcurrency);
-    for (const chunk of chunks) {
-      const promises: ReturnType<typeof run>[] = [];
-      // obtain fresh instance of agent as memory of agent might change from each round processed
-      const agent = getAgent();
-      for (const round of chunk) {
-        promises.push(run({ round, runtime, reporter, recentComments: agent.recentComments }));
-      }
+    // Build portfolio round inputs
+    const portfolioRounds = priceResults.map(({ round, priceAtStart, currentPrice }) => ({
+      roundId: round.roundId,
+      projectId: round.projectId,
+      durationMs: round.durationMs,
+      priceAtStart,
+      currentPrice,
+    }));
 
-      const results = await Promise.allSettled(promises);
+    reporter.onResearching('portfolio');
 
+    // Single LLM call for all projects
+    try {
+      const result = await processPortfolioRound({
+        rounds: portfolioRounds,
+        recentComments: agent.recentComments,
+        agentRuntime: runtime,
+      });
+
+      reporter.onToolsUsed(result.usage.toolNames, result.usage.toolCalls);
+
+      // Build batch payload from allocations
       const payload: BatchCreateMegathreadCommentDto = { comments: [], metadata: { platform } };
-      for (let i = 0; i < results.length; i++) {
-        const round = chunk[i];
-        const result = results[i];
-        if (result.status === 'rejected') {
-          const raw = extractErrorMessage(result.reason);
-          const message = raw.length > 120 ? raw.slice(0, 120) + '\u2026' : raw;
-          reporter.onError(round, message);
-          continue;
-        }
 
-        const data = result.value;
-        if (!data.summary) {
+      for (const allocation of result.allocations) {
+        const round = roundMap.get(allocation.roundId);
+        if (!round) continue;
+
+        if (!allocation.summary) {
+          reporter.onError(round, 'Failed to generate summary');
           continue;
         }
 
         payload.comments.push({
-          call: data.call,
-          roundId: round.roundId,
-          text: data.summary,
+          call: allocation.call,
+          roundId: allocation.roundId,
+          text: allocation.summary,
         });
+
+        const timeframe = calculateTimeframe(round);
+        reporter.onPosted(
+          round,
+          allocation.call,
+          allocation.summary,
+          timeframe,
+          result.usage,
+          allocation.confidence,
+        );
       }
 
-      if (payload.comments.length > 0) {
-        await agent.postBatchMegathreadComments(payload).catch((e) => console.log(e));
+      // if (payload.comments.length > 0) {
+      //   await agent.postBatchMegathreadComments(payload).catch((e) => console.log(e));
+      // }
+    } catch (e) {
+      const raw = extractErrorMessage(e);
+      const message = raw.length > 120 ? raw.slice(0, 120) + '\u2026' : raw;
+      for (const round of rounds) {
+        reporter.onError(round, message);
       }
     }
   };

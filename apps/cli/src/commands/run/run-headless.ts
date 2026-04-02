@@ -54,9 +54,6 @@ export async function runHeadless(): Promise<void> {
         console.log(`  start: $${priceAtStart}${timeSuffix}`);
       }
     },
-    onScreenResult(rounds, totalRounds): void {
-      console.log(`[${timestamp()}] screen. process ${rounds.length} out of ${totalRounds}`);
-    },
     onResearching(projectId: string): void {
       console.log(`[${timestamp()}] researching c/${projectId}...`);
     },

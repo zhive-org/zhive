@@ -1,4 +1,12 @@
 import { PREDICTION_FORMAT, SCORING_RULES } from '../../rules';
+
+export interface PortfolioRoundInput {
+  roundId: string;
+  projectId: string;
+  durationMs: number;
+  priceAtStart?: number;
+  currentPrice?: number;
+}
 import { AgentRuntime } from '../runtime';
 import { SkillDefinition } from '../skills/types';
 import { humanDuration } from '../utils';
@@ -48,9 +56,11 @@ Use the \`executeSkill\` tool to delegate a task to a specialized subagent:
 The subagent will use its expertise to complete YOUR task. You control what the subagent does — the skill provides the knowledge, you provide the instructions.`;
   }
 
-  const system = `You are an agent participating in a price prediction game. You will be given a context called a megathread round. Each round has a project, a duration, and a round-start baseline price. You predict whether the price will be ABOVE (up) or BELOW (down) the round-start price when the round ends.
+  const system = `You are an agent participating in a portfolio allocation game. You will be given multiple megathread rounds for different projects. For each round, you decide whether to allocate capital and in which direction (up/down), with a confidence level (1-5) indicating how much capital to stake.
 
-Key inputs for each round:
+You see ALL available projects at once and decide your portfolio allocation across them. You don't have to invest in every project — skip ones you're not confident about.
+
+Key inputs for each project:
 - **Round-start price** — your scoring baseline. You predict whether the price will be above or below this at round end.
 - **Current price** — how much has already moved from baseline. Use this to inform your directional call.
 - **Time remaining** — less time = less room for reversal. Late in the round, the current direction is more likely to hold.
@@ -59,7 +69,7 @@ Key inputs for each round:
 Scoring:
 ${SCORING_RULES}
 
-## How you make prediction
+## How you make allocation decisions
 
 ${runtime.config.strategyContent}
 ---
@@ -201,6 +211,94 @@ ${scoringLine}
 ${recentPostsSection}${memorySection}
 Give your take in character and your up/down call.
 ${predictionLine}`;
+
+  return userPrompt;
+}
+
+export interface BuildPortfolioPromptOptions {
+  rounds: PortfolioRoundInput[];
+  recentPosts?: readonly string[];
+}
+
+export function buildPortfolioInputPrompt(
+  runtime: AgentRuntime,
+  options: BuildPortfolioPromptOptions,
+): string {
+  const { rounds, recentPosts } = options;
+
+  const now = new Date();
+  const nowIso = now.toISOString();
+
+  // Build numbered project list
+  const projectLines = rounds
+    .map((r, i) => {
+      const timeframe = humanDuration(r.durationMs);
+      const roundStartMs = Math.floor(now.getTime() / r.durationMs) * r.durationMs;
+      const timeRemainingMs = Math.max(0, roundStartMs + r.durationMs - now.getTime());
+      const timeRemaining = humanDuration(timeRemainingMs);
+
+      const lines: string[] = [
+        `${i + 1}. **${r.projectId}** (Round: ${r.roundId})`,
+        `   - Duration: ${timeframe} · ~${timeRemaining} remaining`,
+      ];
+
+      if (r.priceAtStart !== undefined && r.currentPrice !== undefined) {
+        const changePercent = ((r.currentPrice - r.priceAtStart) / r.priceAtStart) * 100;
+        const sign = changePercent >= 0 ? '+' : '';
+        lines.push(
+          `   - Round-start price: $${r.priceAtStart} → Current: $${r.currentPrice} (${sign}${changePercent.toFixed(2)}%)`,
+        );
+      } else if (r.priceAtStart !== undefined) {
+        lines.push(`   - Round-start price: $${r.priceAtStart}`);
+      }
+
+      return lines.join('\n');
+    })
+    .join('\n');
+
+  let recentPostsSection = '';
+  if (recentPosts && recentPosts.length > 0) {
+    const listed = recentPosts.map((p) => `- "${p}"`).join('\n');
+    recentPostsSection = `
+## Anti-repetition
+
+Your recent posts (do NOT repeat these structures, phrases, or opening patterns):
+${listed}
+
+If you catch yourself writing something that sounds like any of the above - stop and take a completely different angle.
+`;
+  }
+
+  let memorySection = '';
+  if (runtime.memory.trim().length > 0) {
+    memorySection = `
+## Agent Memory
+
+Your persistent learnings from past sessions:
+${runtime.memory}`;
+  }
+
+  const userPrompt = `## Context
+
+- Current time: ${nowIso}
+- Total projects available: ${rounds.length}
+
+## Available Projects
+
+${projectLines}
+
+## Your task
+
+Review ALL projects above and decide your portfolio allocation. For each project you want to invest in, provide:
+- A directional call (up/down)
+- A confidence level (1-5) — higher confidence means more capital at stake
+- A short take in character
+
+You can skip projects by not including them. Focus your capital on your highest-conviction plays.
+
+${PREDICTION_FORMAT}
+${recentPostsSection}${memorySection}
+Allocate your portfolio across these projects. Give your takes in character.`;
 
   return userPrompt;
 }

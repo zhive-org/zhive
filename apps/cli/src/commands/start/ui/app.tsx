@@ -31,7 +31,6 @@ export function App(): React.ReactElement {
     timeframesDisplay,
     activePollActivities,
     settledPollActivities,
-    predictionCount,
     termWidth,
     stats,
     statsUpdatedAt,
@@ -47,14 +46,9 @@ export function App(): React.ReactElement {
   const agentPrefix = `${agentName}:`;
   const visibleChatActivity = chatActivity.slice(-15);
 
-  const statsText =
-    predictionCount > 0 ? ` ${border.horizontal.repeat(3)} ${predictionCount} predicted` : '';
   const connectedDisplay = connected ? 'Connected to zHive' : 'connecting...';
   const nameDisplay = `${agentName} agent`;
-  const headerFill = Math.max(
-    0,
-    boxWidth - nameDisplay.length - connectedDisplay.length - 12 - statsText.length,
-  );
+  const headerFill = Math.max(0, boxWidth - nameDisplay.length - connectedDisplay.length - 12);
 
   return (
     <>
@@ -78,8 +72,6 @@ export function App(): React.ReactElement {
           </Text>
           <Text color={colors.gray}> {`${border.horizontal.repeat(3)} `}</Text>
           <Text color={connected ? colors.green : colors.honey}>{connectedDisplay}</Text>
-          {statsText && <Text color={colors.gray}> {`${border.horizontal.repeat(3)} `}</Text>}
-          {statsText && <Text color={colors.honey}>{predictionCount} predicted</Text>}
           <Text color={colors.gray}>
             {' '}
             {border.horizontal.repeat(Math.max(0, headerFill))}

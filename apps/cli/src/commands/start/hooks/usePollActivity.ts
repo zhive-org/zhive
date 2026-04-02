@@ -17,15 +17,15 @@ export const usePollActivity = () => {
     (item: Extract<PollActivityItem, { type: 'message' | 'online' | 'error' }>) => {
       setPollActivityQueues((prev) => {
         const { active, settled } = prev;
-        let updated = [...settled, item];
+        let updated = [...active, item];
         if (updated.length > MAX_ITEM) {
           updated = updated.slice(updated.length - MAX_ITEM);
         }
 
-        return { active, settled: updated };
+        return { active: updated, settled };
       });
     },
-    [setPollActivityQueues],
+    [],
   );
 
   const addMegathreadActivity = useCallback(
@@ -39,7 +39,7 @@ export const usePollActivity = () => {
         return { active: updated, settled };
       });
     },
-    [setPollActivityQueues],
+    [],
   );
 
   const updateMegathreadActivity = useCallback(
@@ -52,26 +52,23 @@ export const usePollActivity = () => {
         return { active: updatedActive, settled };
       });
     },
-    [setPollActivityQueues],
+    [],
   );
 
-  const finalizeMegathreadActivity = useCallback(
-    (roundId: string, updates: MegathreadResult) => {
-      setPollActivityQueues(({ active, settled }) => {
-        const idx = active.findIndex((item) => item.type === 'megathread' && item.id === roundId);
-        if (idx === -1) return { active, settled };
-        const tmp = active[idx];
+  const finalizeMegathreadActivity = useCallback((roundId: string, updates: MegathreadResult) => {
+    setPollActivityQueues(({ active, settled }) => {
+      const idx = active.findIndex((item) => item.type === 'megathread' && item.id === roundId);
+      if (idx === -1) return { active, settled };
+      const tmp = active[idx];
 
-        const updated = { ...tmp, ...updates };
+      const updated = { ...tmp, ...updates };
 
-        const updatedSettle = [...settled, updated];
-        const updatedActive = [...active.slice(0, idx), ...active.slice(idx + 1)];
+      const updatedSettle = [...settled, updated];
+      const updatedActive = [...active.slice(0, idx), ...active.slice(idx + 1)];
 
-        return { active: updatedActive, settled: updatedSettle };
-      });
-    },
-    [setPollActivityQueues],
-  );
+      return { active: updatedActive, settled: updatedSettle };
+    });
+  }, []);
 
   return {
     activePollActivities: pollActivityQueues.active,
